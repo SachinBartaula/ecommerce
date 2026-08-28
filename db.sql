@@ -123,3 +123,12 @@ CREATE TABLE payments (
         REFERENCES orders(id)
         ON DELETE CASCADE
 );
+
+-- DEFAULT ADMIN (change this password after first login)
+INSERT INTO users (name, email, password, role)
+VALUES (
+    'Admin',
+    'admin@gmail.com',
+    '$2y$10$92IXUNvk2bWQ3OjQ5QqW3uQYqfQp0wP6u2T5qJ5y7Yp2X0K7wQx5y',
+    'admin'
+);
