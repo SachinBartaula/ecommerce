@@ -136,10 +136,71 @@ $basePath = rtrim($basePath, "/");
             transform: translateY(-6px);
             box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.15);
         }
+
+        .public-page {
+            position: relative;
+            overflow-x: hidden;
+            background: #f8fafc;
+        }
+
+        .public-page::before,
+        .public-page::after {
+            content: "";
+            position: fixed;
+            z-index: -1;
+            width: 15rem;
+            height: 15rem;
+            border: 1.5rem solid rgba(37, 99, 235, .045);
+            border-radius: 999px;
+            pointer-events: none;
+            animation: siteFloat 12s ease-in-out infinite;
+        }
+
+        .public-page::before {
+            top: 18%;
+            left: -7rem;
+        }
+
+        .public-page::after {
+            right: -7rem;
+            bottom: 10%;
+            border-color: rgba(14, 165, 233, .055);
+            animation-delay: -6s;
+        }
+
+        .public-page main {
+            position: relative;
+            z-index: 1;
+            animation: siteEnter .45s ease-out both;
+        }
+
+        .public-page main .bg-white {
+            border: 1px solid rgba(226, 232, 240, .8);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+        }
+
+        @keyframes siteFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-22px) rotate(10deg); }
+        }
+
+        @keyframes siteEnter {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .public-page::before,
+            .public-page::after,
+            .public-page main {
+                animation: none;
+            }
+        }
+
     </style>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="public-page min-h-screen flex flex-col">
 
     <!-- ==========================================
          NAVBAR
