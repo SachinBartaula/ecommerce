@@ -55,6 +55,38 @@
             });
         }
 
+        // Live cart-count badge
+        function updateCartBadge(count) {
+            const badge = document.getElementById("cart-badge");
+            const badgeMobile = document.getElementById("cart-badge-mobile");
+
+            [badge, badgeMobile].forEach((el) => {
+                if (!el) return;
+                el.textContent = count > 99 ? "99+" : count;
+                if (count > 0) {
+                    el.classList.remove("hidden");
+                    el.classList.add("flex");
+                } else {
+                    el.classList.add("hidden");
+                    el.classList.remove("flex");
+                }
+            });
+        }
+
+        // Expose globally so product pages can call it after "Add to Cart"
+        window.updateCartBadge = updateCartBadge;
+
+        <?php if ($isLoggedIn): ?>
+        fetch("<?php echo $basePath; ?>/api/cart.php?action=count")
+            .then((r) => r.json())
+            .then((data) => {
+                if (data.success) {
+                    updateCartBadge(data.total_count);
+                }
+            })
+            .catch(() => {});
+        <?php endif; ?>
+
         // Fade/slide elements into view as they enter the viewport
         const revealEls = document.querySelectorAll(".reveal");
 

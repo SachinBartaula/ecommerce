@@ -10,6 +10,23 @@ $userRole   = $_SESSION["user_role"] ?? "customer";
 
 // Current script name, used to highlight the active nav link
 $currentPage = basename($_SERVER["PHP_SELF"]);
+
+// Build URLs from the application's directory so links also work when the
+// project is hosted in a subdirectory (for example, /ecommerce in XAMPP).
+$documentRoot = realpath($_SERVER["DOCUMENT_ROOT"] ?? "");
+$projectRoot = realpath(__DIR__ . DIRECTORY_SEPARATOR . "..");
+$basePath = "";
+
+if ($documentRoot && $projectRoot) {
+    $documentRoot = str_replace("\\", "/", $documentRoot);
+    $projectRoot = str_replace("\\", "/", $projectRoot);
+
+    if (strpos($projectRoot, $documentRoot) === 0) {
+        $basePath = substr($projectRoot, strlen($documentRoot));
+    }
+}
+
+$basePath = rtrim($basePath, "/");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -130,33 +147,17 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
     <header id="site-nav" class="bg-white/90 backdrop-blur sticky top-0 z-50 shadow-sm">
         <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
 
-            <a href="/index.php" class="text-xl font-bold text-gray-800 flex items-center gap-1 group">
+            <a href="<?php echo $basePath; ?>/index.php" class="text-xl font-bold text-gray-800 flex items-center gap-1 group">
                 <span class="inline-block transition-transform duration-300 group-hover:rotate-12">🛍️</span>
                 ShopEase
             </a>
 
             <!-- Desktop nav -->
             <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
-
-                <a href="/index.php"
-                    class="nav-link <?php echo $currentPage === 'index.php' ? 'text-blue-600 active' : 'hover:text-blue-600'; ?>">
-                    Home
-                </a>
-
-                <a href="/products.php"
-                    class="nav-link <?php echo $currentPage === 'products.php' ? 'text-blue-600 active' : 'hover:text-blue-600'; ?>">
-                    Products
-                </a>
-
-                <a href="/cart.php"
-                    class="nav-link <?php echo $currentPage === 'cart.php' ? 'text-blue-600 active' : 'hover:text-blue-600'; ?>">
-                    Cart
-                </a>
-
-                <?php if ($isLoggedIn): ?>
+                  <?php if ($isLoggedIn): ?>
 
                     <?php if ($userRole === 'admin'): ?>
-                        <a href="/admin/products.php" class="nav-link hover:text-blue-600">
+                        <a href="<?php echo $basePath; ?>/admin/products.php" class="nav-link hover:text-blue-600">
                             Admin
                         </a>
                     <?php endif; ?>
@@ -165,19 +166,39 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
                         Hi, <?php echo htmlspecialchars($userName); ?>
                     </span>
 
-                    <a href="/logout.php"
+                <a href="<?php echo $basePath; ?>/index.php"
+                    class="nav-link <?php echo $currentPage === 'index.php' ? 'text-blue-600 active' : 'hover:text-blue-600'; ?>">
+                    Home
+                </a>
+
+                <a href="<?php echo $basePath; ?>/products.php"
+                    class="nav-link <?php echo $currentPage === 'products.php' ? 'text-blue-600 active' : 'hover:text-blue-600'; ?>">
+                    Products
+                </a>
+
+                <a href="<?php echo $basePath; ?>/cart.php"
+                    class="nav-link relative <?php echo $currentPage === 'cart.php' ? 'text-blue-600 active' : 'hover:text-blue-600'; ?>">
+                    🛒Cart
+                    <span
+                        id="cart-badge"
+                        class="hidden absolute -top-2 -right-3 bg-blue-600 text-white text-[10px] font-bold w-4 h-4 rounded-full items-center justify-center">
+                        0
+                    </span>
+                </a>
+
+                    <a href="<?php echo $basePath; ?>/logout.php"
                         class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-transform duration-200 hover:scale-105">
                         Logout
                     </a>
 
                 <?php else: ?>
 
-                    <a href="/login.php"
+                    <a href="<?php echo $basePath; ?>/login.php"
                         class="nav-link <?php echo $currentPage === 'login.php' ? 'text-blue-600 active' : 'hover:text-blue-600'; ?>">
                         Login
                     </a>
 
-                    <a href="/register.php"
+                    <a href="<?php echo $basePath; ?>/register.php"
                         class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-transform duration-200 hover:scale-105">
                         Register
                     </a>
@@ -205,25 +226,30 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
             class="md:hidden max-h-0 overflow-hidden transition-all duration-300 ease-in-out bg-white border-t">
             <div class="flex flex-col px-6 py-2 text-sm font-medium text-gray-600">
 
-                <a href="/index.php"
+                <a href="<?php echo $basePath; ?>/index.php"
                     class="py-3 border-b border-gray-100 <?php echo $currentPage === 'index.php' ? 'text-blue-600' : ''; ?>">
                     Home
                 </a>
 
-                <a href="/products.php"
+                <a href="<?php echo $basePath; ?>/products.php"
                     class="py-3 border-b border-gray-100 <?php echo $currentPage === 'products.php' ? 'text-blue-600' : ''; ?>">
                     Products
                 </a>
 
-                <a href="/cart.php"
-                    class="py-3 border-b border-gray-100 <?php echo $currentPage === 'cart.php' ? 'text-blue-600' : ''; ?>">
-                    Cart
+                <a href="<?php echo $basePath; ?>/cart.php"
+                    class="py-3 border-b border-gray-100 flex items-center justify-between <?php echo $currentPage === 'cart.php' ? 'text-blue-600' : ''; ?>">
+                    <span>Cart</span>
+                    <span
+                        id="cart-badge-mobile"
+                        class="hidden bg-blue-600 text-white text-xs font-bold w-5 h-5 rounded-full items-center justify-center">
+                        0
+                    </span>
                 </a>
 
                 <?php if ($isLoggedIn): ?>
 
                     <?php if ($userRole === 'admin'): ?>
-                        <a href="/admin/products.php" class="py-3 border-b border-gray-100">
+                        <a href="<?php echo $basePath; ?>/admin/products.php" class="py-3 border-b border-gray-100">
                             Admin
                         </a>
                     <?php endif; ?>
@@ -232,18 +258,18 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
                         Hi, <?php echo htmlspecialchars($userName); ?>
                     </span>
 
-                    <a href="/logout.php" class="py-3 text-red-600 font-semibold">
+                    <a href="<?php echo $basePath; ?>/logout.php" class="py-3 text-red-600 font-semibold">
                         Logout
                     </a>
 
                 <?php else: ?>
 
-                    <a href="/login.php"
+                    <a href="<?php echo $basePath; ?>/login.php"
                         class="py-3 border-b border-gray-100 <?php echo $currentPage === 'login.php' ? 'text-blue-600' : ''; ?>">
                         Login
                     </a>
 
-                    <a href="/register.php" class="py-3 text-blue-600 font-semibold">
+                    <a href="<?php echo $basePath; ?>/register.php" class="py-3 text-blue-600 font-semibold">
                         Register
                     </a>
 
