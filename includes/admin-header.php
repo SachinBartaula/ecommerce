@@ -41,6 +41,7 @@ $adminTitle = $pageTitle ?? "Admin";
             <nav class="hidden items-center gap-1 md:flex">
                 <a href="index.php" class="admin-nav-link rounded-lg px-4 py-2 text-sm font-semibold <?php echo $adminPage === "index.php" ? "active" : ""; ?>">Dashboard</a>
                 <a href="products.php" class="admin-nav-link rounded-lg px-4 py-2 text-sm font-semibold <?php echo $adminPage === "products.php" ? "active" : ""; ?>">Products</a>
+                <a href="inventory.php" class="admin-nav-link rounded-lg px-4 py-2 text-sm font-semibold <?php echo $adminPage === "inventory.php" ? "active" : ""; ?>">Inventory</a>
                 <a href="categories.php" class="admin-nav-link rounded-lg px-4 py-2 text-sm font-semibold <?php echo $adminPage === "categories.php" ? "active" : ""; ?>">Categories</a>
                 <a href="orders.php" class="admin-nav-link rounded-lg px-4 py-2 text-sm font-semibold <?php echo $adminPage === "orders.php" ? "active" : ""; ?>">Orders</a>
                 <span class="mx-3 h-6 w-px bg-white/15"></span>
@@ -54,6 +55,7 @@ $adminTitle = $pageTitle ?? "Admin";
             <div class="mx-auto flex max-w-7xl flex-col px-4 py-3 sm:px-6">
                 <a href="index.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold <?php echo $adminPage === "index.php" ? "active" : ""; ?>">Dashboard</a>
                 <a href="products.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold <?php echo $adminPage === "products.php" ? "active" : ""; ?>">Products</a>
+                <a href="inventory.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold <?php echo $adminPage === "inventory.php" ? "active" : ""; ?>">Inventory</a>
                 <a href="categories.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold <?php echo $adminPage === "categories.php" ? "active" : ""; ?>">Categories</a>
                 <a href="orders.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold <?php echo $adminPage === "orders.php" ? "active" : ""; ?>">Orders</a>
                 <a href="../products.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold">View storefront</a>

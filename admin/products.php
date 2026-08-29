@@ -1,36 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+$pageTitle = "Product Management";
+require_once "../includes/admin-header.php";
+?>
 
-    <title>Product Management</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-
-<body class="bg-gray-100">
+    <style>
+        .admin-page-header { letter-spacing: 0.08em; }
+        .admin-card { border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04); }
+        .admin-form-input { border: 1px solid #dbe3ee; background: #f8fafc; border-radius: 0.9rem; padding: 0.8rem 1rem; transition: all 0.2s ease; }
+        .admin-form-input:focus { outline: none; border-color: #3b82f6; background: #ffffff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12); }
+        .admin-form-select { border: 1px solid #dbe3ee; background: #f8fafc; border-radius: 0.9rem; padding: 0.8rem 1rem; transition: all 0.2s ease; }
+        .admin-form-select:focus { outline: none; border-color: #3b82f6; background: #ffffff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12); }
+        .admin-button-primary { background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%); color: white; border-radius: 0.9rem; padding: 0.8rem 1.2rem; font-weight: 700; transition: all 0.2s ease; }
+        .admin-button-primary:hover { background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%); }
+        .admin-button-secondary { border: 1px solid #dfe7f1; background: #ffffff; color: #0f172a; border-radius: 0.9rem; padding: 0.8rem 1.2rem; font-weight: 700; transition: all 0.2s ease; }
+        .admin-button-secondary:hover { background: #f8fafc; }
+        .admin-status-badge { display: inline-flex; align-items: center; border-radius: 9999px; padding: 0.32rem 0.72rem; font-size: 0.72rem; font-weight: 700; }
+        .admin-status-good { background: #ecfdf5; color: #047857; }
+        .admin-status-warning { background: #fff7ed; color: #c2410c; }
+        .admin-status-neutral { background: #eef2ff; color: #4338ca; }
+        .product-card { border: 1px solid #e2e8f0; border-radius: 1rem; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
+    </style>
 
     <div class="max-w-6xl mx-auto px-6 py-10">
 
         <!-- PAGE TITLE -->
-        <h1 class="text-3xl font-bold text-gray-800 mb-8">
-            Product Management
-        </h1>
+        <div class="mb-8">
+            <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                Product Management
+            </h1>
+        </div>
 
 
         <!-- ==========================================
              ADD PRODUCT FORM
         =========================================== -->
 
-        <div class="bg-white rounded-xl shadow p-6 mb-8">
+        <div class="admin-card bg-white rounded-2xl p-6 mb-8">
 
-            <h2 class="text-xl font-semibold mb-6">
-                Add New Product
-            </h2>
+            <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h2 class="text-xl font-bold text-slate-900">
+                    Add New Product
+                </h2>
+                <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-blue-700">Quick add</span>
+            </div>
 
             <form id="productForm" enctype="multipart/form-data">
+
+                <input type="hidden" id="product_id" name="id" value="">
+                <input type="hidden" id="form_action" name="action" value="create">
 
                 <!-- INPUT GRID -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -51,7 +69,7 @@
                             type="text"
                             id="name"
                             name="name"
-                            class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="admin-form-input w-full"
                             placeholder="Enter product name">
 
                     </div>
@@ -74,7 +92,7 @@
                             name="price"
                             step="0.01"
                             min="0"
-                            class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="admin-form-input w-full"
                             placeholder="Enter price">
 
                     </div>
@@ -96,7 +114,7 @@
                             id="stock"
                             name="stock"
                             min="0"
-                            class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="admin-form-input w-full"
                             placeholder="Enter stock quantity">
 
                     </div>
@@ -116,7 +134,7 @@
                         <select
                             id="category_id"
                             name="category_id"
-                            class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            class="admin-form-select w-full">
 
                             <option value="">
                                 Select Category
@@ -147,7 +165,7 @@
                         id="description"
                         name="description"
                         rows="4"
-                        class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="admin-form-input w-full"
                         placeholder="Enter product description"></textarea>
 
                 </div>
@@ -167,7 +185,7 @@
                     </label>
 
 
-                    <div class="flex flex-col md:flex-row gap-3">
+                    <div class="flex flex-col gap-3 md:flex-row md:items-center">
 
                         <!-- IMAGE URL -->
 
@@ -175,17 +193,17 @@
                             type="url"
                             id="image_url"
                             name="image_url"
-                            class="flex-1 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="https://example.com/image.jpg">
+                            class="admin-form-input flex-1"
+                            placeholder="Paste image URL here">
 
 
                         <!-- UPLOAD BUTTON -->
 
                         <label
                             for="image_file"
-                            class="cursor-pointer bg-gray-800 hover:bg-gray-900 text-white px-5 py-3 rounded-lg flex items-center justify-center">
+                            class="admin-button-secondary flex cursor-pointer items-center justify-center px-5 py-3">
 
-                            Upload Image
+                            Upload image
 
                         </label>
 
@@ -202,11 +220,8 @@
                     </div>
 
 
-                    <p class="text-sm text-gray-500 mt-2">
-
-                        Use an image URL or upload an image.
-                        Maximum size: 2 MB.
-
+                    <p class="mt-2 text-sm text-slate-500">
+                        Optional image URL or upload. Recommended size: 800x800 or similar. Maximum: 2 MB.
                     </p>
 
 
@@ -231,29 +246,40 @@
                      SUBMIT BUTTON
                 =========================================== -->
 
-                <button
-                    type="submit"
-                    id="submitBtn"
-                    class="mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg">
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <button
+                        type="submit"
+                        id="submitBtn"
+                        class="admin-button-primary">
 
-                    Add Product
+                        Add Product
 
-                </button>
+                    </button>
+
+                    <button
+                        type="button"
+                        id="cancelEditBtn"
+                        class="admin-button-secondary hidden">
+                        Cancel Edit
+                    </button>
+                </div>
 
             </form>
 
         </div>
 
-
         <!-- ==========================================
              PRODUCT LIST
         =========================================== -->
 
-        <div class="bg-white rounded-xl shadow p-6">
+        <div class="admin-card bg-white rounded-2xl p-6">
 
-            <h2 class="text-xl font-semibold mb-6">
-                Products
-            </h2>
+            <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h2 class="text-xl font-bold text-slate-900">
+                    Products
+                </h2>
+                <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Inventory</span>
+            </div>
 
 
             <div id="productsContainer">
@@ -283,6 +309,17 @@ const imageUrl = document.getElementById("image_url");
 const imagePreview = document.getElementById("imagePreview");
 const previewImg = document.getElementById("previewImg");
 const submitBtn = document.getElementById("submitBtn");
+const productId = document.getElementById("product_id");
+const formAction = document.getElementById("form_action");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
+let productsById = {};
+
+function getProductImageUrl(path) {
+    if (!path) return "../assets/images/products/default.jpg";
+    if (/^https?:\/\//i.test(path) || path.startsWith("/")) return path;
+    if (path.startsWith("../") || path.startsWith("./")) return path;
+    return "../" + path.replace(/^\.?\//, "");
+}
 
 const name = document.getElementById("name");
 const price = document.getElementById("price");
@@ -393,52 +430,41 @@ async function loadProducts() {
         }
 
 
+        productsById = Object.fromEntries(result.data.map(product => [product.id, product]));
+
         productsContainer.innerHTML =
             result.data.map(product => `
 
-                <div class="border rounded-lg p-4 mb-4">
+                <div class="product-card mb-4 p-4">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+                        ${product.image ? `<img src="${getProductImageUrl(product.image)}" class="h-24 w-24 flex-shrink-0 rounded-xl border border-slate-200 object-cover bg-slate-100" alt="${product.name}">` : `<div class="flex h-24 w-24 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-100 text-xs font-semibold text-slate-400">No image</div>`}
 
-                    <div class="flex gap-4">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                <div class="min-w-0">
+                                    <h3 class="truncate text-lg font-bold text-slate-800">${product.name}</h3>
+                                    <p class="mt-1 text-xs uppercase tracking-wide text-slate-400">${product.category || "Uncategorized"}</p>
+                                </div>
+                                <span class="admin-status-badge ${Number(product.stock) === 0 ? 'admin-status-warning' : Number(product.stock) <= 5 ? 'admin-status-warning' : 'admin-status-good'}">
+                                    ${Number(product.stock) === 0 ? 'Out of stock' : Number(product.stock) <= 5 ? 'Low stock' : 'In stock'}
+                                </span>
+                            </div>
 
-                        ${
-                            product.image
-                            ?
-                            `
-                            <img
-                                src="${product.image}"
-                                class="w-24 h-24 object-cover rounded-lg border"
-                                alt="${product.name}">
-                            `
-                            :
-                            ""
-                        }
-
-                        <div>
-
-                            <h3 class="font-semibold text-lg">
-                                ${product.name}
-                            </h3>
-
-                            <p class="text-gray-600 mt-1">
-                                ${product.description || ""}
+                            <p class="mt-2 text-sm leading-6 text-slate-600">
+                                ${product.description || "No description provided yet."}
                             </p>
 
-                            <p class="font-semibold mt-2">
-                                Price: $${product.price}
-                            </p>
+                            <div class="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                                <span class="rounded-full bg-blue-50 px-2.5 py-1 font-bold text-blue-700">$${product.price}</span>
+                                <span class="text-slate-500">Stock: <strong class="text-slate-700">${product.stock}</strong></span>
+                            </div>
 
-                            <p class="text-gray-600">
-                                Stock: ${product.stock}
-                            </p>
-
-                            <p class="text-gray-500">
-                                Category: ${product.category || "None"}
-                            </p>
-
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                <button type="button" class="admin-button-secondary px-3 py-2 text-sm" onclick="editProduct(${product.id})">Edit</button>
+                                <button type="button" class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100" onclick="deleteProduct(${product.id})">Delete</button>
+                            </div>
                         </div>
-
                     </div>
-
                 </div>
 
             `).join("");
@@ -455,6 +481,71 @@ async function loadProducts() {
         `;
     }
 }
+
+function editProduct(id) {
+    const product = productsById[id];
+    if (!product) {
+        return;
+    }
+
+    productId.value = product.id;
+    formAction.value = "update";
+    name.value = product.name || "";
+    price.value = product.price || "";
+    stock.value = product.stock || "";
+    description.value = product.description || "";
+
+    const category = Array.from(categorySelect.options).find(option => option.textContent === product.category);
+    categorySelect.value = category ? category.value : "";
+    imageUrl.value = product.image && product.image.startsWith("http") ? product.image : "";
+    imageFile.value = "";
+
+    if (product.image) {
+        previewImg.src = getProductImageUrl(product.image);
+        imagePreview.classList.remove("hidden");
+    } else {
+        imagePreview.classList.add("hidden");
+    }
+
+    submitBtn.textContent = "Update Product";
+    cancelEditBtn.classList.remove("hidden");
+    document.getElementById("productForm").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function deleteProduct(id) {
+    const product = productsById[id];
+    if (!product || !window.confirm(`Delete ${product.name}?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`../api/products.php?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+        const result = await response.json();
+
+        if (!result.success) {
+            window.alert(result.message || "Unable to delete product.");
+            return;
+        }
+
+        resetProductForm();
+        loadProducts();
+    } catch (error) {
+        window.alert("Unable to connect to the server.");
+    }
+}
+
+function resetProductForm() {
+    form.reset();
+    productId.value = "";
+    formAction.value = "create";
+    submitBtn.textContent = "Add Product";
+    cancelEditBtn.classList.add("hidden");
+    imagePreview.classList.add("hidden");
+    previewImg.src = "";
+    clearAllErrors();
+}
+
+cancelEditBtn.addEventListener("click", resetProductForm);
 
 
 // =====================================================

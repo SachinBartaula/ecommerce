@@ -218,7 +218,7 @@ $basePath = rtrim($basePath, "/");
                   <?php if ($isLoggedIn): ?>
 
                     <?php if ($userRole === 'admin'): ?>
-                        <a href="<?php echo $basePath; ?>/admin/products.php" class="nav-link hover:text-blue-600">
+                        <a href="<?php echo $basePath; ?>/admin/index.php" class="nav-link hover:text-blue-600">
                             Admin
                         </a>
                     <?php endif; ?>
@@ -310,7 +310,7 @@ $basePath = rtrim($basePath, "/");
                 <?php if ($isLoggedIn): ?>
 
                     <?php if ($userRole === 'admin'): ?>
-                        <a href="<?php echo $basePath; ?>/admin/products.php" class="py-3 border-b border-gray-100">
+                        <a href="<?php echo $basePath; ?>/admin/index.php" class="py-3 border-b border-gray-100">
                             Admin
                         </a>
                     <?php endif; ?>

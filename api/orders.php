@@ -52,7 +52,7 @@ if ($requestMethod === "GET") {
         $status = "all";
     }
 
-    $sql = "SELECT orders.id, orders.total_amount, orders.status, orders.shipping_address, orders.created_at, users.name AS customer, users.email FROM orders INNER JOIN users ON users.id = orders.user_id WHERE 1=1";
+    $sql = "SELECT orders.id, orders.total_amount, orders.status, orders.shipping_address, orders.created_at, users.name AS customer, users.email, payments.payment_method, payments.status AS payment_status FROM orders INNER JOIN users ON users.id = orders.user_id LEFT JOIN payments ON payments.order_id = orders.id WHERE 1=1";
     $types = "";
     $params = [];
     if ($status !== "all") {
@@ -104,6 +104,37 @@ if ($requestMethod === "POST" && ($_POST["action"] ?? "") === "update_status") {
     $success = mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
     echo json_encode(["success" => $success, "message" => $success ? "Order status updated." : "Unable to update order status."]);
+    exit;
+}
+
+if ($requestMethod === "POST" && ($_POST["action"] ?? "") === "update_payment_status") {
+    $orderId = filter_var($_POST["id"] ?? "", FILTER_VALIDATE_INT);
+    $paymentStatus = $_POST["payment_status"] ?? "";
+    $allowedStatuses = ["pending", "paid", "failed"];
+
+    if (!$orderId || !in_array($paymentStatus, $allowedStatuses, true)) {
+        echo json_encode(["success" => false, "message" => "Invalid payment status update."]);
+        exit;
+    }
+
+    $checkStmt = mysqli_prepare($conn, "SELECT id FROM payments WHERE order_id = ? LIMIT 1");
+    mysqli_stmt_bind_param($checkStmt, "i", $orderId);
+    mysqli_stmt_execute($checkStmt);
+    $paymentResult = mysqli_stmt_get_result($checkStmt);
+    $paymentExists = mysqli_fetch_assoc($paymentResult);
+    mysqli_stmt_close($checkStmt);
+
+    if (!$paymentExists) {
+        echo json_encode(["success" => false, "message" => "No payment record exists for this order."]);
+        exit;
+    }
+
+    $stmt = mysqli_prepare($conn, "UPDATE payments SET status = ? WHERE order_id = ?");
+    mysqli_stmt_bind_param($stmt, "si", $paymentStatus, $orderId);
+    $success = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+
+    echo json_encode(["success" => $success, "message" => $success ? "Payment status updated." : "Unable to update payment status."]);
     exit;
 }
 

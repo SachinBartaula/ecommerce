@@ -4,6 +4,21 @@ $pageTitle = "Order Management";
 require_once "../includes/admin-header.php";
 ?>
 
+<style>
+    .orders-status-pill { border-radius: 999px; padding: .32rem .7rem; font-size: .72rem; font-weight: 700; text-transform: capitalize; }
+    .status-pending { background: #fff7ed; color: #c2410c; }
+    .status-confirmed { background: #eff6ff; color: #1d4ed8; }
+    .status-shipped { background: #f5f3ff; color: #6d28d9; }
+    .status-delivered { background: #ecfdf5; color: #047857; }
+    .status-cancelled { background: #fef2f2; color: #b91c1c; }
+    .order-status-select { appearance: none; border: 1px solid #dbe3ee; border-radius: .8rem; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); padding: .7rem .85rem; font-size: .86rem; color: #0f172a; font-weight: 600; min-width: 7.5rem; }
+    .order-status-select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, .12); }
+    .payment-status-pill { border-radius: 999px; padding: .2rem .55rem; font-size: .68rem; font-weight: 700; text-transform: capitalize; }
+    .payment-status-pending { background: #fff7ed; color: #c2410c; }
+    .payment-status-paid { background: #ecfdf5; color: #047857; }
+    .payment-status-failed { background: #fef2f2; color: #b91c1c; }
+</style>
+
 <main class="min-h-[calc(100vh-5rem)] bg-slate-100 py-8">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -12,15 +27,15 @@ require_once "../includes/admin-header.php";
                 <h1 class="mt-1 text-3xl font-bold tracking-tight text-slate-900">Order Management</h1>
                 <p class="mt-2 text-sm text-slate-500">Review orders and keep customers up to date.</p>
             </div>
-            <span id="ordersCount" class="text-sm font-semibold text-slate-500"></span>
+            <span id="ordersCount" class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 ring-1 ring-inset ring-blue-200"></span>
         </div>
 
-        <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex flex-col gap-3 lg:flex-row">
+        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ring-1 ring-slate-100">
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
                 <label for="orderSearch" class="sr-only">Search orders</label>
-                <input id="orderSearch" type="search" class="flex-1 rounded-lg border border-slate-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search by order number, customer, or email">
+                <input id="orderSearch" type="search" class="flex-1 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700 shadow-sm transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100" placeholder="Search by order number, customer, or email">
                 <label for="orderStatus" class="sr-only">Filter by status</label>
-                <select id="orderStatus" class="rounded-lg border border-slate-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="orderStatus" class="rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100">
                     <option value="all">All statuses</option>
                     <option value="pending">Pending</option>
                     <option value="confirmed">Confirmed</option>
@@ -28,18 +43,18 @@ require_once "../includes/admin-header.php";
                     <option value="delivered">Delivered</option>
                     <option value="cancelled">Cancelled</option>
                 </select>
-                <button id="refreshOrders" type="button" class="rounded-lg border border-slate-300 px-5 py-3 font-semibold text-slate-700 hover:bg-slate-50">Refresh</button>
+                <button id="refreshOrders" type="button" class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Refresh</button>
             </div>
         </section>
 
-        <section class="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-100">
             <div id="ordersMessage" class="hidden px-5 py-4 text-sm"></div>
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[780px] text-left text-sm">
-                    <thead class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                        <tr><th class="px-5 py-4 font-semibold">Order</th><th class="px-5 py-4 font-semibold">Customer</th><th class="px-5 py-4 font-semibold">Date</th><th class="px-5 py-4 text-right font-semibold">Total</th><th class="px-5 py-4 font-semibold">Status</th><th class="px-5 py-4 text-right font-semibold">Action</th></tr>
+                <table class="w-full min-w-[900px] text-left text-sm">
+                    <thead class="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-[.12em] text-slate-500">
+                        <tr><th class="px-5 py-4 font-semibold">Order</th><th class="px-5 py-4 font-semibold">Customer</th><th class="px-5 py-4 font-semibold">Payment</th><th class="px-5 py-4 font-semibold">Date</th><th class="px-5 py-4 text-right font-semibold">Total</th><th class="px-5 py-4 font-semibold">Status</th><th class="px-5 py-4 text-right font-semibold">Action</th></tr>
                     </thead>
-                    <tbody id="ordersBody" class="divide-y divide-slate-100"><tr><td colspan="6" class="px-5 py-10 text-center text-slate-500">Loading orders...</td></tr></tbody>
+                    <tbody id="ordersBody" class="divide-y divide-slate-100"><tr><td colspan="7" class="px-5 py-10 text-center text-slate-500">Loading orders...</td></tr></tbody>
                 </table>
             </div>
         </section>
@@ -62,9 +77,23 @@ const orderStatus = document.getElementById("orderStatus");
 const orderModal = document.getElementById("orderModal");
 const orderDetails = document.getElementById("orderDetails");
 let orders = [];
+let activeOrderId = null;
 
 function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#039;", "\"": "&quot;" })[character]);
+}
+
+function formatPaymentMethod(method) {
+    const normalized = String(method ?? "").trim().toLowerCase();
+    if (normalized === "cod") return "Cash on Delivery";
+    if (normalized === "card" || normalized === "online_payment" || normalized === "onlinepayment") return "Online Payment";
+    return "Not recorded";
+}
+
+function formatPaymentStatus(status) {
+    const normalized = String(status ?? "").trim().toLowerCase();
+    if (["pending", "paid", "failed"].includes(normalized)) return normalized;
+    return "pending";
 }
 
 function showMessage(message, type = "error") {
@@ -76,24 +105,37 @@ function showMessage(message, type = "error") {
 function renderOrders() {
     ordersCount.textContent = `${orders.length} order${orders.length === 1 ? "" : "s"}`;
     if (!orders.length) {
-        ordersBody.innerHTML = `<tr><td colspan="6" class="px-5 py-10 text-center text-slate-500">No orders match your filters.</td></tr>`;
+        ordersBody.innerHTML = `<tr><td colspan="7" class="px-5 py-10 text-center text-slate-500">No orders match your filters.</td></tr>`;
         return;
     }
 
-    ordersBody.innerHTML = orders.map(order => `
-        <tr class="hover:bg-slate-50">
+    ordersBody.innerHTML = orders.map(order => {
+        const paymentStatus = formatPaymentStatus(order.payment_status);
+        return `
+        <tr class="transition hover:bg-slate-50">
             <td class="px-5 py-4 font-bold text-slate-700">#${escapeHtml(order.id)}</td>
             <td class="px-5 py-4"><p class="font-semibold text-slate-700">${escapeHtml(order.customer)}</p><p class="text-xs text-slate-500">${escapeHtml(order.email)}</p></td>
+            <td class="px-5 py-4">
+                <div class="space-y-2">
+                    <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">${escapeHtml(formatPaymentMethod(order.payment_method))}</span>
+                    <select class="order-status-select w-full min-w-[110px] capitalize" data-payment-status="${escapeHtml(order.id)}">
+                        <option value="pending" ${paymentStatus === "pending" ? "selected" : ""}>Pending</option>
+                        <option value="paid" ${paymentStatus === "paid" ? "selected" : ""}>Paid</option>
+                        <option value="failed" ${paymentStatus === "failed" ? "selected" : ""}>Failed</option>
+                    </select>
+                </div>
+            </td>
             <td class="px-5 py-4 text-slate-500">${escapeHtml(new Date(order.created_at.replace(" ", "T")).toLocaleDateString())}</td>
-            <td class="px-5 py-4 text-right font-semibold text-slate-700">$${Number(order.total_amount).toFixed(2)}</td>
-            <td class="px-5 py-4"><select class="rounded-lg border border-slate-300 px-3 py-2 text-sm capitalize focus:outline-none focus:ring-2 focus:ring-blue-500" data-order-status="${escapeHtml(order.id)}"><option value="pending" ${order.status === "pending" ? "selected" : ""}>Pending</option><option value="confirmed" ${order.status === "confirmed" ? "selected" : ""}>Confirmed</option><option value="shipped" ${order.status === "shipped" ? "selected" : ""}>Shipped</option><option value="delivered" ${order.status === "delivered" ? "selected" : ""}>Delivered</option><option value="cancelled" ${order.status === "cancelled" ? "selected" : ""}>Cancelled</option></select></td>
-            <td class="px-5 py-4 text-right"><button type="button" class="font-semibold text-blue-600 hover:text-blue-800" data-order-details="${escapeHtml(order.id)}">View details</button></td>
+            <td class="px-5 py-4 text-right font-semibold text-slate-800">$${Number(order.total_amount).toFixed(2)}</td>
+            <td class="px-5 py-4"><select class="order-status-select capitalize" data-order-status="${escapeHtml(order.id)}"><option value="pending" ${order.status === "pending" ? "selected" : ""}>Pending</option><option value="confirmed" ${order.status === "confirmed" ? "selected" : ""}>Confirmed</option><option value="shipped" ${order.status === "shipped" ? "selected" : ""}>Shipped</option><option value="delivered" ${order.status === "delivered" ? "selected" : ""}>Delivered</option><option value="cancelled" ${order.status === "cancelled" ? "selected" : ""}>Cancelled</option></select></td>
+            <td class="px-5 py-4 text-right"><button type="button" class="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100" data-order-details="${escapeHtml(order.id)}">View details</button></td>
         </tr>
-    `).join("");
+    `;
+    }).join("");
 }
 
 async function loadOrders() {
-    ordersBody.innerHTML = `<tr><td colspan="6" class="px-5 py-10 text-center text-slate-500">Loading orders...</td></tr>`;
+    ordersBody.innerHTML = `<tr><td colspan="7" class="px-5 py-10 text-center text-slate-500">Loading orders...</td></tr>`;
     try {
         const params = new URLSearchParams({ status: orderStatus.value, search: orderSearch.value.trim() });
         const response = await fetch(`../api/orders.php?${params}`);
@@ -103,7 +145,7 @@ async function loadOrders() {
         ordersMessage.classList.add("hidden");
         renderOrders();
     } catch (error) {
-        ordersBody.innerHTML = `<tr><td colspan="6" class="px-5 py-10 text-center text-red-600">${escapeHtml(error.message)}</td></tr>`;
+        ordersBody.innerHTML = `<tr><td colspan="7" class="px-5 py-10 text-center text-red-600">${escapeHtml(error.message)}</td></tr>`;
         ordersCount.textContent = "";
     }
 }
@@ -120,6 +162,9 @@ async function updateOrderStatus(id, status, select) {
         if (!result.success) throw new Error(result.message || "Unable to update order.");
         const order = orders.find(item => String(item.id) === String(id));
         if (order) order.status = status;
+        if (activeOrderId === id) {
+            await viewOrder(id);
+        }
         showMessage(result.message, "success");
     } catch (error) {
         showMessage(error.message);
@@ -129,7 +174,34 @@ async function updateOrderStatus(id, status, select) {
     }
 }
 
+async function updatePaymentStatus(id, status, select) {
+    select.disabled = true;
+    const data = new FormData();
+    data.append("action", "update_payment_status");
+    data.append("id", id);
+    data.append("payment_status", status);
+    try {
+        const response = await fetch("../api/orders.php", { method: "POST", body: data });
+        const result = await response.json();
+        if (!result.success) throw new Error(result.message || "Unable to update payment status.");
+        const order = orders.find(item => String(item.id) === String(id));
+        if (order) order.payment_status = status;
+        if (activeOrderId === id) {
+            await viewOrder(id);
+        }
+        showMessage(result.message, "success");
+    } catch (error) {
+        showMessage(error.message);
+        if (activeOrderId === id) {
+            await viewOrder(id);
+        }
+    } finally {
+        select.disabled = false;
+    }
+}
+
 async function viewOrder(id) {
+    activeOrderId = id;
     orderModal.classList.remove("hidden");
     orderModal.classList.add("flex");
     orderDetails.innerHTML = `<p class="text-sm text-slate-500">Loading order details...</p>`;
@@ -138,8 +210,10 @@ async function viewOrder(id) {
         const result = await response.json();
         if (!result.success) throw new Error(result.message || "Unable to load order details.");
         const order = result.data;
+        const statusClass = `status-${order.status || "pending"}`;
+        const paymentStatus = formatPaymentStatus(order.payment_status);
         orderDetails.innerHTML = `
-            <div class="grid gap-4 sm:grid-cols-2"><div><p class="text-xs uppercase tracking-wide text-slate-400">Customer</p><p class="mt-1 font-semibold text-slate-700">${escapeHtml(order.customer)}</p><p class="text-sm text-slate-500">${escapeHtml(order.email)}</p></div><div><p class="text-xs uppercase tracking-wide text-slate-400">Shipping address</p><p class="mt-1 text-sm text-slate-700">${escapeHtml(order.shipping_address)}</p></div><div><p class="text-xs uppercase tracking-wide text-slate-400">Payment</p><p class="mt-1 text-sm capitalize text-slate-700">${escapeHtml(order.payment_method || "Not recorded")} &middot; ${escapeHtml(order.payment_status || "Unknown")}</p></div><div><p class="text-xs uppercase tracking-wide text-slate-400">Total</p><p class="mt-1 text-lg font-bold text-slate-900">$${Number(order.total_amount).toFixed(2)}</p></div></div>
+            <div class="grid gap-4 sm:grid-cols-2"><div><p class="text-xs uppercase tracking-wide text-slate-400">Customer</p><p class="mt-1 font-semibold text-slate-700">${escapeHtml(order.customer)}</p><p class="text-sm text-slate-500">${escapeHtml(order.email)}</p></div><div><p class="text-xs uppercase tracking-wide text-slate-400">Shipping address</p><p class="mt-1 text-sm text-slate-700">${escapeHtml(order.shipping_address)}</p></div><div><p class="text-xs uppercase tracking-wide text-slate-400">Payment method</p><p class="mt-1 text-sm text-slate-700">${escapeHtml(formatPaymentMethod(order.payment_method))}</p></div><div><p class="text-xs uppercase tracking-wide text-slate-400">Payment status</p><div class="mt-2"><span class="payment-status-pill payment-status-${paymentStatus}">${escapeHtml(paymentStatus)}</span></div></div><div><p class="text-xs uppercase tracking-wide text-slate-400">Total</p><p class="mt-1 text-lg font-bold text-slate-900">$${Number(order.total_amount).toFixed(2)}</p></div><div class="sm:col-span-2"><p class="text-xs uppercase tracking-wide text-slate-400">Order status</p><div class="mt-2"><span class="orders-status-pill ${statusClass}">${escapeHtml(order.status || "pending")}</span></div></div></div>
             <h3 class="mt-7 border-b border-slate-200 pb-3 font-bold text-slate-900">Items</h3>
             <div class="divide-y divide-slate-100">${order.items.length ? order.items.map(item => `<div class="flex justify-between gap-4 py-3 text-sm"><span class="text-slate-700">${escapeHtml(item.name || "Deleted product")} <span class="text-slate-400">x${escapeHtml(item.quantity)}</span></span><strong class="text-slate-700">$${(Number(item.price) * Number(item.quantity)).toFixed(2)}</strong></div>`).join("") : `<p class="py-4 text-sm text-slate-500">No items recorded.</p>`}</div>
         `;
@@ -150,6 +224,7 @@ async function viewOrder(id) {
 
 ordersBody.addEventListener("change", event => {
     if (event.target.matches("[data-order-status]")) updateOrderStatus(event.target.dataset.orderStatus, event.target.value, event.target);
+    if (event.target.matches("[data-payment-status]")) updatePaymentStatus(event.target.dataset.paymentStatus, event.target.value, event.target);
 });
 ordersBody.addEventListener("click", event => {
     const button = event.target.closest("[data-order-details]");
@@ -159,7 +234,7 @@ document.getElementById("refreshOrders").addEventListener("click", loadOrders);
 orderStatus.addEventListener("change", loadOrders);
 let searchTimer;
 orderSearch.addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(loadOrders, 300); });
-document.getElementById("closeOrderModal").addEventListener("click", () => { orderModal.classList.add("hidden"); orderModal.classList.remove("flex"); });
-orderModal.addEventListener("click", event => { if (event.target === orderModal) { orderModal.classList.add("hidden"); orderModal.classList.remove("flex"); } });
+document.getElementById("closeOrderModal").addEventListener("click", () => { activeOrderId = null; orderModal.classList.add("hidden"); orderModal.classList.remove("flex"); });
+orderModal.addEventListener("click", event => { if (event.target === orderModal) { activeOrderId = null; orderModal.classList.add("hidden"); orderModal.classList.remove("flex"); } });
 loadOrders();
 </script>
