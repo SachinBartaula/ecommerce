@@ -3,6 +3,7 @@
 require_once "../config/database.php";
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_name("shop_customer_session");
     session_start();
 }
 

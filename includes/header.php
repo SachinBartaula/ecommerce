@@ -1,12 +1,14 @@
 <?php
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_name("shop_customer_session");
     session_start();
 }
 
-$isLoggedIn = isset($_SESSION["user_id"]);
-$userName   = $_SESSION["user_name"] ?? "";
-$userRole   = $_SESSION["user_role"] ?? "customer";
+$customerSessionId = $_SESSION["customer_id"] ?? $_SESSION["user_id"] ?? null;
+$isLoggedIn = isset($customerSessionId);
+$userName   = $_SESSION["customer_name"] ?? $_SESSION["user_name"] ?? "";
+$userRole   = $_SESSION["customer_role"] ?? $_SESSION["user_role"] ?? "customer";
 
 // Current script name, used to highlight the active nav link
 $currentPage = basename($_SERVER["PHP_SELF"]);
@@ -247,7 +249,7 @@ $basePath = rtrim($basePath, "/");
                     </span>
                 </a>
 
-                    <a href="<?php echo $basePath; ?>/logout.php"
+                    <a href="<?php echo $basePath; ?>/logout.php?role=customer"
                         class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-transform duration-200 hover:scale-105">
                         Logout
                     </a>
@@ -319,7 +321,7 @@ $basePath = rtrim($basePath, "/");
                         Hi, <?php echo htmlspecialchars($userName); ?>
                     </span>
 
-                    <a href="<?php echo $basePath; ?>/logout.php" class="py-3 text-red-600 font-semibold">
+                    <a href="<?php echo $basePath; ?>/logout.php?role=customer" class="py-3 text-red-600 font-semibold">
                         Logout
                     </a>
 

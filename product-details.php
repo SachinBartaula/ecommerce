@@ -3,6 +3,7 @@
 require_once "config/database.php";
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_name("shop_customer_session");
     session_start();
 }
 
@@ -133,13 +134,23 @@ require_once "includes/header.php";
 
                     </div>
 
-                    <button
-                        type="button"
-                        id="addToCartBtn"
-                        data-product-id="<?php echo (int) $product['id']; ?>"
-                        class="w-full md:w-auto bg-blue-600 text-white font-semibold px-8 py-3 rounded-lg hover:bg-blue-700 hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center gap-2">
-                        <span id="addToCartLabel">Add to Cart</span>
-                    </button>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button
+                            type="button"
+                            id="addToCartBtn"
+                            data-product-id="<?php echo (int) $product['id']; ?>"
+                            class="w-full sm:w-auto bg-blue-600 text-white font-semibold px-8 py-3 rounded-lg hover:bg-blue-700 hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center gap-2">
+                            <span id="addToCartLabel">Add to Cart</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            id="buyNowBtn"
+                            data-product-id="<?php echo (int) $product['id']; ?>"
+                            class="w-full sm:w-auto border border-blue-600 bg-white text-blue-600 font-semibold px-8 py-3 rounded-lg hover:bg-blue-50 hover:scale-105 transition-all duration-200 shadow-sm flex items-center justify-center gap-2">
+                            Buy Now
+                        </button>
+                    </div>
 
                     <p id="cartFeedback" class="mt-3 text-sm hidden"></p>
 
@@ -174,6 +185,7 @@ require_once "includes/header.php";
     const qtyMinus   = document.getElementById("qtyMinus");
     const qtyPlus    = document.getElementById("qtyPlus");
     const addBtn     = document.getElementById("addToCartBtn");
+    const buyNowBtn  = document.getElementById("buyNowBtn");
     const addLabel   = document.getElementById("addToCartLabel");
     const feedback   = document.getElementById("cartFeedback");
     const maxStock   = <?php echo (int) $product["stock"]; ?>;
@@ -250,6 +262,16 @@ require_once "includes/header.php";
                 feedback.className = "mt-3 text-sm text-red-600";
                 feedback.classList.remove("hidden");
             });
+    });
+
+    buyNowBtn.addEventListener("click", () => {
+        if (!isLoggedIn) {
+            window.location.href = "login.php";
+            return;
+        }
+
+        const quantity = parseInt(qtyInput.value || 1, 10);
+        window.location.href = `checkout.php?buy=${encodeURIComponent(addBtn.dataset.productId)}&qty=${encodeURIComponent(quantity)}`;
     });
 })();
 </script>

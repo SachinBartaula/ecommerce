@@ -1,10 +1,16 @@
 <?php
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_name("shop_admin_session");
     session_start();
 }
 
-if (!isset($_SESSION["user_id"]) || ($_SESSION["user_role"] ?? "customer") !== "admin") {
+$adminSessionValid = isset($_SESSION["user_id"]) && (
+    ($_SESSION["user_role"] ?? "") === "admin" ||
+    ($_SESSION["admin_role"] ?? "") === "admin"
+);
+
+if (!$adminSessionValid) {
     header("Location: login.php");
     exit;
 }
@@ -28,7 +34,7 @@ function formatPaymentMethod($method) {
         return "Cash on Delivery";
     }
 
-    if ($value === "card" || $value === "online_payment" || $value === "onlinepayment") {
+    if ($value === "card" || $value === "online_payment" || $value === "onlinepayment" || $value === "esewa" || $value === "khalti" || $value === "imepay") {
         return "Online Payment";
     }
 

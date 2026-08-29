@@ -3,6 +3,7 @@
 require_once __DIR__ . "/../config/database.php";
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_name("shop_admin_session");
     session_start();
 }
 
@@ -117,16 +118,22 @@ if ($requestMethod === "POST" && ($_POST["action"] ?? "") === "update_payment_st
         exit;
     }
 
-    $checkStmt = mysqli_prepare($conn, "SELECT id FROM payments WHERE order_id = ? LIMIT 1");
+    $checkStmt = mysqli_prepare($conn, "SELECT id, payment_method FROM payments WHERE order_id = ? LIMIT 1");
     mysqli_stmt_bind_param($checkStmt, "i", $orderId);
     mysqli_stmt_execute($checkStmt);
     $paymentResult = mysqli_stmt_get_result($checkStmt);
-    $paymentExists = mysqli_fetch_assoc($paymentResult);
+    $paymentRecord = mysqli_fetch_assoc($paymentResult);
     mysqli_stmt_close($checkStmt);
 
-    if (!$paymentExists) {
+    if (!$paymentRecord) {
         echo json_encode(["success" => false, "message" => "No payment record exists for this order."]);
         exit;
+    }
+
+    $normalizedMethod = strtolower(trim((string) ($paymentRecord["payment_method"] ?? "")));
+    $onlineMethods = ["card", "online_payment", "onlinepayment", "esewa", "khalti", "imepay"];
+    if (in_array($normalizedMethod, $onlineMethods, true)) {
+        $paymentStatus = "paid";
     }
 
     $stmt = mysqli_prepare($conn, "UPDATE payments SET status = ? WHERE order_id = ?");

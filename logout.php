@@ -1,13 +1,15 @@
 <?php
 
+$role = $_GET["role"] ?? "customer";
+$sessionName = $role === "admin" ? "shop_admin_session" : "shop_customer_session";
+$redirectTo = $role === "admin" ? "admin/login.php" : "login.php";
+
+session_name($sessionName);
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Clear all session variables
 $_SESSION = [];
-
-// Destroy the session cookie itself
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
     setcookie(
@@ -23,5 +25,5 @@ if (ini_get("session.use_cookies")) {
 
 session_destroy();
 
-header("Location: login.php");
+header("Location: " . $redirectTo);
 exit;

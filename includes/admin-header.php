@@ -1,12 +1,28 @@
 <?php
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_name("shop_admin_session");
     session_start();
 }
 
-if (($requireAdmin ?? true) && (!isset($_SESSION["user_id"]) || ($_SESSION["user_role"] ?? "customer") !== "admin")) {
+$adminSessionValid = (
+    isset($_SESSION["user_id"]) && (
+        ($_SESSION["user_role"] ?? "") === "admin" ||
+        ($_SESSION["admin_role"] ?? "") === "admin"
+    )
+) || (
+    isset($_SESSION["admin_id"]) && ($_SESSION["admin_role"] ?? "") === "admin"
+);
+
+if (($requireAdmin ?? true) && !$adminSessionValid) {
     header("Location: login.php");
     exit;
+}
+
+if ($adminSessionValid && empty($_SESSION["admin_id"])) {
+    $_SESSION["admin_id"] = $_SESSION["user_id"];
+    $_SESSION["admin_name"] = $_SESSION["user_name"] ?? "Admin";
+    $_SESSION["admin_role"] = "admin";
 }
 
 $adminPage = basename($_SERVER["PHP_SELF"]);
@@ -45,7 +61,7 @@ $adminTitle = $pageTitle ?? "Admin";
                 <a href="categories.php" class="admin-nav-link rounded-lg px-4 py-2 text-sm font-semibold <?php echo $adminPage === "categories.php" ? "active" : ""; ?>">Categories</a>
                 <a href="orders.php" class="admin-nav-link rounded-lg px-4 py-2 text-sm font-semibold <?php echo $adminPage === "orders.php" ? "active" : ""; ?>">Orders</a>
                 <span class="mx-3 h-6 w-px bg-white/15"></span>
-                <a href="../logout.php" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-blue-100">Log out</a>
+                <a href="../logout.php?role=admin" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-blue-100">Log out</a>
             </nav>
 
             <button id="admin-menu-button" type="button" class="rounded-lg border border-white/20 px-3 py-2 text-sm font-semibold md:hidden" aria-expanded="false" aria-controls="admin-menu">Menu</button>
@@ -59,7 +75,7 @@ $adminTitle = $pageTitle ?? "Admin";
                 <a href="categories.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold <?php echo $adminPage === "categories.php" ? "active" : ""; ?>">Categories</a>
                 <a href="orders.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold <?php echo $adminPage === "orders.php" ? "active" : ""; ?>">Orders</a>
                 <a href="../products.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold">View storefront</a>
-                <a href="../logout.php" class="mt-2 rounded-lg px-3 py-3 text-sm font-semibold text-red-300 hover:bg-white/10">Log out</a>
+                <a href="../logout.php?role=admin" class="mt-2 rounded-lg px-3 py-3 text-sm font-semibold text-red-300 hover:bg-white/10">Log out</a>
             </div>
         </nav>
     </header>

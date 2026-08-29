@@ -3,6 +3,7 @@
 require_once "config/database.php";
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_name("shop_customer_session");
     session_start();
 }
 
@@ -37,9 +38,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($user && password_verify($password, $user["password"])) {
 
+            session_regenerate_id(true);
+
             $_SESSION["user_id"]   = $user["id"];
             $_SESSION["user_name"] = $user["name"];
-            $_SESSION["user_role"] = $user["role"];
+            $_SESSION["user_role"] = "customer";
+
+            $_SESSION["customer_id"]   = $user["id"];
+            $_SESSION["customer_name"] = $user["name"];
+            $_SESSION["customer_role"] = "customer";
 
             header("Location: index.php");
             exit;

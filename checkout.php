@@ -3,6 +3,7 @@
 require_once "config/database.php";
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_name("shop_customer_session");
     session_start();
 }
 
@@ -19,6 +20,29 @@ $paymentMethod   = "cod";
 $orderPlaced     = false;
 $orderId         = null;
 $orderTotal      = 0;
+$directBuyProduct = null;
+$directBuyQty     = 1;
+
+$buyProductId = filter_input(INPUT_GET, "buy", FILTER_VALIDATE_INT);
+if ($buyProductId) {
+    $buySql = "SELECT id, name, price, stock FROM products WHERE id = ? LIMIT 1";
+    $buyStmt = mysqli_prepare($conn, $buySql);
+    mysqli_stmt_bind_param($buyStmt, "i", $buyProductId);
+    mysqli_stmt_execute($buyStmt);
+    $buyResult = mysqli_stmt_get_result($buyStmt);
+    $directBuyProduct = mysqli_fetch_assoc($buyResult);
+    mysqli_stmt_close($buyStmt);
+
+    if ($directBuyProduct) {
+        $directBuyQty = (int) ($_GET["qty"] ?? 1);
+        if ($directBuyQty < 1) {
+            $directBuyQty = 1;
+        }
+        if ($directBuyQty > (int) $directBuyProduct["stock"]) {
+            $directBuyQty = (int) $directBuyProduct["stock"];
+        }
+    }
+}
 
 
 function getCartId($conn, $userId) {
@@ -42,7 +66,7 @@ function getCartId($conn, $userId) {
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $shippingAddress = trim($_POST["shipping_address"] ?? "");
-    $paymentMethod   = in_array($_POST["payment_method"] ?? "", ["cod", "card"]) ? $_POST["payment_method"] : "cod";
+    $paymentMethod   = in_array($_POST["payment_method"] ?? "", ["cod", "card", "esewa", "khalti", "imepay"]) ? $_POST["payment_method"] : "cod";
 
     if ($shippingAddress === "") {
         $errors[] = "Shipping address is required.";
@@ -52,42 +76,73 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if (empty($errors)) {
 
-        $cartId = getCartId($conn, $userId);
+        $directBuyProductId = filter_input(INPUT_POST, "direct_buy_product_id", FILTER_VALIDATE_INT);
+        if ($directBuyProductId) {
+            $directBuySql = "SELECT id, name, price, stock FROM products WHERE id = ? LIMIT 1";
+            $directBuyStmt = mysqli_prepare($conn, $directBuySql);
+            mysqli_stmt_bind_param($directBuyStmt, "i", $directBuyProductId);
+            mysqli_stmt_execute($directBuyStmt);
+            $directBuyResult = mysqli_stmt_get_result($directBuyStmt);
+            $directBuyProduct = mysqli_fetch_assoc($directBuyResult);
+            mysqli_stmt_close($directBuyStmt);
 
-        if (!$cartId) {
-            $errors[] = "Your cart is empty.";
-        } else {
-
-            $itemsSql = "SELECT
-                            cart_items.id AS cart_item_id,
-                            cart_items.product_id,
-                            cart_items.quantity,
-                            products.price,
-                            products.stock,
-                            products.name
-                         FROM cart_items
-                         JOIN products ON cart_items.product_id = products.id
-                         WHERE cart_items.cart_id = ?";
-
-            $itemsStmt = mysqli_prepare($conn, $itemsSql);
-            mysqli_stmt_bind_param($itemsStmt, "i", $cartId);
-            mysqli_stmt_execute($itemsStmt);
-            $itemsResult = mysqli_stmt_get_result($itemsStmt);
-
-            $cartItems = [];
-            while ($row = mysqli_fetch_assoc($itemsResult)) {
-                $cartItems[] = $row;
+            $directBuyQty = (int) ($_POST["direct_buy_quantity"] ?? 1);
+            if ($directBuyQty < 1) {
+                $directBuyQty = 1;
             }
-            mysqli_stmt_close($itemsStmt);
+            if ($directBuyQty > (int) ($directBuyProduct["stock"] ?? 0)) {
+                $directBuyQty = (int) ($directBuyProduct["stock"] ?? 0);
+            }
 
-            if (empty($cartItems)) {
+            if (!$directBuyProduct || (int) $directBuyProduct["stock"] <= 0) {
+                $errors[] = "This product is not available for direct purchase.";
+            } else {
+                $cartItems = [[
+                    "product_id" => (int) $directBuyProduct["id"],
+                    "quantity" => $directBuyQty,
+                    "price" => (float) $directBuyProduct["price"],
+                    "stock" => (int) $directBuyProduct["stock"],
+                    "name" => $directBuyProduct["name"]
+                ]];
+            }
+        } else {
+            $cartId = getCartId($conn, $userId);
+
+            if (!$cartId) {
                 $errors[] = "Your cart is empty.";
             } else {
 
-                // Verify stock is still sufficient for every item
-                foreach ($cartItems as $item) {
-                    if ((int) $item["quantity"] > (int) $item["stock"]) {
-                        $errors[] = "Not enough stock for \"" . $item["name"] . "\".";
+                $itemsSql = "SELECT
+                                cart_items.id AS cart_item_id,
+                                cart_items.product_id,
+                                cart_items.quantity,
+                                products.price,
+                                products.stock,
+                                products.name
+                             FROM cart_items
+                             JOIN products ON cart_items.product_id = products.id
+                             WHERE cart_items.cart_id = ?";
+
+                $itemsStmt = mysqli_prepare($conn, $itemsSql);
+                mysqli_stmt_bind_param($itemsStmt, "i", $cartId);
+                mysqli_stmt_execute($itemsStmt);
+                $itemsResult = mysqli_stmt_get_result($itemsStmt);
+
+                $cartItems = [];
+                while ($row = mysqli_fetch_assoc($itemsResult)) {
+                    $cartItems[] = $row;
+                }
+                mysqli_stmt_close($itemsStmt);
+
+                if (empty($cartItems)) {
+                    $errors[] = "Your cart is empty.";
+                } else {
+
+                    // Verify stock is still sufficient for every item
+                    foreach ($cartItems as $item) {
+                        if ((int) $item["quantity"] > (int) $item["stock"]) {
+                            $errors[] = "Not enough stock for \"" . $item["name"] . "\".";
+                        }
                     }
                 }
             }
@@ -150,9 +205,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
 
             // Record payment
-            $paymentStatus = $paymentMethod === "card" ? "paid" : "pending";
-            $transactionId = $paymentMethod === "card" ? uniqid("txn_", true) : null;
-            $paidAt = $paymentMethod === "card" ? date("Y-m-d H:i:s") : null;
+            $isPaidOnline = in_array($paymentMethod, ["card", "esewa", "khalti", "imepay"], true);
+            $paymentStatus = $isPaidOnline ? "paid" : "pending";
+            $transactionId = $isPaidOnline ? uniqid("txn_", true) : null;
+            $paidAt = $isPaidOnline ? date("Y-m-d H:i:s") : null;
 
             $paymentSql = "INSERT INTO payments (order_id, payment_method, transaction_id, amount, status, paid_at)
                            VALUES (?, ?, ?, ?, ?, ?)";
@@ -170,13 +226,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             mysqli_stmt_execute($paymentStmt);
             mysqli_stmt_close($paymentStmt);
 
-            // Empty the cart
-            $clearSql = "DELETE FROM cart_items WHERE cart_id = ?";
-            $clearStmt = mysqli_prepare($conn, $clearSql);
-            $cartIdForClear = getCartId($conn, $userId);
-            mysqli_stmt_bind_param($clearStmt, "i", $cartIdForClear);
-            mysqli_stmt_execute($clearStmt);
-            mysqli_stmt_close($clearStmt);
+            // Empty the cart only for normal checkout flow
+            if (!$directBuyProductId) {
+                $clearSql = "DELETE FROM cart_items WHERE cart_id = ?";
+                $clearStmt = mysqli_prepare($conn, $clearSql);
+                $cartIdForClear = getCartId($conn, $userId);
+                mysqli_stmt_bind_param($clearStmt, "i", $cartIdForClear);
+                mysqli_stmt_execute($clearStmt);
+                mysqli_stmt_close($clearStmt);
+            }
 
             mysqli_commit($conn);
 
@@ -276,18 +334,35 @@ require_once "includes/header.php";
                             </div>
                         </label>
 
+
                         <label class="flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer hover:border-blue-400 transition">
-                            <input type="radio" name="payment_method" value="card"
-                                <?php echo $paymentMethod === 'card' ? 'checked' : ''; ?>>
+                            <input type="radio" name="payment_method" value="esewa"
+                                <?php echo $paymentMethod === 'esewa' ? 'checked' : ''; ?>>
                             <div>
-                                <p class="font-medium text-gray-800">Credit / Debit Card</p>
-                                <p class="text-xs text-gray-500">Demo payment &mdash; no real charge</p>
+                                <p class="font-medium text-gray-800">eSewa</p>
+                                <p class="text-xs text-gray-500">Popular Nepal online payment</p>
                             </div>
                         </label>
+
+                        <label class="flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer hover:border-blue-400 transition">
+                            <input type="radio" name="payment_method" value="khalti"
+                                <?php echo $paymentMethod === 'khalti' ? 'checked' : ''; ?>>
+                            <div>
+                                <p class="font-medium text-gray-800">Khalti</p>
+                                <p class="text-xs text-gray-500">Nepal digital wallet</p>
+                            </div>
+                        </label>
+
+                        
 
                     </div>
 
                 </div>
+
+                <?php if ($directBuyProduct): ?>
+                    <input type="hidden" name="direct_buy_product_id" value="<?php echo (int) $directBuyProduct["id"]; ?>">
+                    <input type="hidden" name="direct_buy_quantity" value="<?php echo (int) $directBuyQty; ?>">
+                <?php endif; ?>
 
                 <button
                     type="submit"
@@ -336,6 +411,26 @@ require_once "includes/header.php";
         const div = document.createElement("div");
         div.textContent = str ?? "";
         return div.innerHTML;
+    }
+
+    const directBuyProduct = <?php echo json_encode($directBuyProduct ? [
+        "id" => (int) $directBuyProduct["id"],
+        "name" => $directBuyProduct["name"],
+        "price" => (float) $directBuyProduct["price"],
+        "quantity" => (int) $directBuyQty
+    ] : null); ?>;
+
+    if (directBuyProduct) {
+        summaryItems.innerHTML = `
+            <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-600 truncate pr-2">${escapeHtml(directBuyProduct.name)} &times; ${directBuyProduct.quantity}</span>
+                <span class="text-gray-800 font-medium whitespace-nowrap">
+                    $${(parseFloat(directBuyProduct.price) * directBuyProduct.quantity).toFixed(2)}
+                </span>
+            </div>
+        `;
+        summaryTotal.textContent = `$${(parseFloat(directBuyProduct.price) * directBuyProduct.quantity).toFixed(2)}`;
+        return;
     }
 
     fetch("api/cart.php?action=list")

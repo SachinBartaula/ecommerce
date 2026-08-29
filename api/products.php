@@ -3,14 +3,14 @@
 require_once __DIR__ . "/../config/database.php";
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_name("shop_admin_session");
     session_start();
 }
 
 header("Content-Type: application/json");
 $requestMethod = $_SERVER["REQUEST_METHOD"] ?? "GET";
 
-if ($requestMethod !== "GET" &&
-    (!isset($_SESSION["user_id"]) || ($_SESSION["user_role"] ?? "customer") !== "admin")) {
+if ($requestMethod !== "GET" && (!isset($_SESSION["user_id"]) || ($_SESSION["user_role"] ?? "customer") !== "admin")) {
     http_response_code(403);
     echo json_encode([
         "success" => false,

@@ -68,6 +68,38 @@ require_once "../includes/admin-header.php";
     </section>
 </div>
 
+<div id="lockConfirmModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-slate-900/60 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="lockConfirmTitle">
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <div class="mb-4 flex items-start justify-between gap-3">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-[.2em] text-amber-600">Warning</p>
+                <h3 id="lockConfirmTitle" class="mt-2 text-xl font-bold text-slate-900">Lock this order?</h3>
+            </div>
+            <button id="closeLockConfirmModal" type="button" class="text-2xl leading-none text-slate-400 hover:text-slate-700" aria-label="Close confirmation">&times;</button>
+        </div>
+
+        <div class="space-y-4 text-sm text-slate-600">
+            <p>Before locking this order, confirm both conditions are complete.</p>
+            <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <input id="lockDeliveryDone" type="checkbox" class="mt-1 h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+                <span>Delivery is completed.</span>
+            </label>
+            <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <input id="lockPaymentDone" type="checkbox" class="mt-1 h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+                <span>Payment is completed.</span>
+            </label>
+            <div class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+                Once locked, this order cannot be edited again.
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end gap-3">
+            <button id="cancelLockConfirm" type="button" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button id="confirmLockOrder" type="button" class="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white opacity-60 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50" disabled>Lock now</button>
+        </div>
+    </div>
+</div>
+
 <script>
 const ordersBody = document.getElementById("ordersBody");
 const ordersCount = document.getElementById("ordersCount");
@@ -78,6 +110,37 @@ const orderModal = document.getElementById("orderModal");
 const orderDetails = document.getElementById("orderDetails");
 let orders = [];
 let activeOrderId = null;
+let pendingLockOrderId = null;
+
+const lockConfirmModal = document.getElementById("lockConfirmModal");
+const confirmLockOrderButton = document.getElementById("confirmLockOrder");
+const lockDeliveryDone = document.getElementById("lockDeliveryDone");
+const lockPaymentDone = document.getElementById("lockPaymentDone");
+
+function updateLockConfirmState() {
+    const canLock = lockDeliveryDone.checked && lockPaymentDone.checked;
+    confirmLockOrderButton.disabled = !canLock;
+    confirmLockOrderButton.classList.toggle("opacity-60", !canLock);
+    confirmLockOrderButton.classList.toggle("cursor-not-allowed", !canLock);
+}
+
+function openLockConfirmModal(orderId) {
+    pendingLockOrderId = orderId;
+    lockDeliveryDone.checked = false;
+    lockPaymentDone.checked = false;
+    updateLockConfirmState();
+    lockConfirmModal.classList.remove("hidden");
+    lockConfirmModal.classList.add("flex");
+}
+
+function closeLockConfirmModal() {
+    pendingLockOrderId = null;
+    lockDeliveryDone.checked = false;
+    lockPaymentDone.checked = false;
+    updateLockConfirmState();
+    lockConfirmModal.classList.add("hidden");
+    lockConfirmModal.classList.remove("flex");
+}
 
 function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#039;", "\"": "&quot;" })[character]);
@@ -87,6 +150,9 @@ function formatPaymentMethod(method) {
     const normalized = String(method ?? "").trim().toLowerCase();
     if (normalized === "cod") return "Cash on Delivery";
     if (normalized === "card" || normalized === "online_payment" || normalized === "onlinepayment") return "Online Payment";
+    if (normalized === "esewa") return "eSewa";
+    if (normalized === "khalti") return "Khalti";
+    if (normalized === "imepay") return "IME Pay";
     return "Not recorded";
 }
 
@@ -94,6 +160,30 @@ function formatPaymentStatus(status) {
     const normalized = String(status ?? "").trim().toLowerCase();
     if (["pending", "paid", "failed"].includes(normalized)) return normalized;
     return "pending";
+}
+
+function isOnlinePaymentMethod(method) {
+    const normalized = String(method ?? "").trim().toLowerCase();
+    return ["card", "online_payment", "onlinepayment", "esewa", "khalti", "imepay"].includes(normalized);
+}
+
+function getLockedOrderStatusIds() {
+    try {
+        return JSON.parse(localStorage.getItem("lockedOrderStatusIds") || "[]");
+    } catch {
+        return [];
+    }
+}
+
+function setLockedOrderStatusIds(ids) {
+    localStorage.setItem("lockedOrderStatusIds", JSON.stringify(ids));
+}
+
+function resolvePaymentStatusForDisplay(order) {
+    if (isOnlinePaymentMethod(order.payment_method)) {
+        return "paid";
+    }
+    return formatPaymentStatus(order.payment_status);
 }
 
 function showMessage(message, type = "error") {
@@ -110,7 +200,9 @@ function renderOrders() {
     }
 
     ordersBody.innerHTML = orders.map(order => {
-        const paymentStatus = formatPaymentStatus(order.payment_status);
+        const paymentStatus = resolvePaymentStatusForDisplay(order);
+        const isOnlinePayment = isOnlinePaymentMethod(order.payment_method);
+        const isLocked = getLockedOrderStatusIds().includes(Number(order.id));
         return `
         <tr class="transition hover:bg-slate-50">
             <td class="px-5 py-4 font-bold text-slate-700">#${escapeHtml(order.id)}</td>
@@ -118,7 +210,7 @@ function renderOrders() {
             <td class="px-5 py-4">
                 <div class="space-y-2">
                     <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">${escapeHtml(formatPaymentMethod(order.payment_method))}</span>
-                    <select class="order-status-select w-full min-w-[110px] capitalize" data-payment-status="${escapeHtml(order.id)}">
+                    <select class="order-status-select w-full min-w-[110px] capitalize" data-payment-status="${escapeHtml(order.id)}" ${isOnlinePayment || isLocked ? "disabled title='This payment status is locked'" : ""}>
                         <option value="pending" ${paymentStatus === "pending" ? "selected" : ""}>Pending</option>
                         <option value="paid" ${paymentStatus === "paid" ? "selected" : ""}>Paid</option>
                         <option value="failed" ${paymentStatus === "failed" ? "selected" : ""}>Failed</option>
@@ -127,7 +219,14 @@ function renderOrders() {
             </td>
             <td class="px-5 py-4 text-slate-500">${escapeHtml(new Date(order.created_at.replace(" ", "T")).toLocaleDateString())}</td>
             <td class="px-5 py-4 text-right font-semibold text-slate-800">$${Number(order.total_amount).toFixed(2)}</td>
-            <td class="px-5 py-4"><select class="order-status-select capitalize" data-order-status="${escapeHtml(order.id)}"><option value="pending" ${order.status === "pending" ? "selected" : ""}>Pending</option><option value="confirmed" ${order.status === "confirmed" ? "selected" : ""}>Confirmed</option><option value="shipped" ${order.status === "shipped" ? "selected" : ""}>Shipped</option><option value="delivered" ${order.status === "delivered" ? "selected" : ""}>Delivered</option><option value="cancelled" ${order.status === "cancelled" ? "selected" : ""}>Cancelled</option></select></td>
+            <td class="px-5 py-4">
+                <div class="flex items-center gap-2">
+                    <select class="order-status-select capitalize" data-order-status="${escapeHtml(order.id)}" ${isLocked ? "disabled title='Order delivery status is locked'" : ""}><option value="pending" ${order.status === "pending" ? "selected" : ""}>Pending</option><option value="confirmed" ${order.status === "confirmed" ? "selected" : ""}>Confirmed</option><option value="shipped" ${order.status === "shipped" ? "selected" : ""}>Shipped</option><option value="delivered" ${order.status === "delivered" ? "selected" : ""}>Delivered</option><option value="cancelled" ${order.status === "cancelled" ? "selected" : ""}>Cancelled</option></select>
+                    <button type="button" class="rounded-lg ${isLocked ? "bg-slate-900 text-white" : "bg-amber-50 text-amber-700 hover:bg-amber-100"} px-2.5 py-2 text-[11px] font-bold uppercase tracking-wide transition" data-order-lock="${escapeHtml(order.id)}" ${isLocked ? "disabled" : ""}>
+                        ${isLocked ? "Locked" : "Lock"}
+                    </button>
+                </div>
+            </td>
             <td class="px-5 py-4 text-right"><button type="button" class="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100" data-order-details="${escapeHtml(order.id)}">View details</button></td>
         </tr>
     `;
@@ -223,12 +322,55 @@ async function viewOrder(id) {
 }
 
 ordersBody.addEventListener("change", event => {
+    const orderId = Number(event.target.dataset.orderStatus || event.target.dataset.paymentStatus || 0);
+    const isLocked = getLockedOrderStatusIds().includes(orderId);
+
+    if (isLocked) {
+        renderOrders();
+        return;
+    }
+
     if (event.target.matches("[data-order-status]")) updateOrderStatus(event.target.dataset.orderStatus, event.target.value, event.target);
     if (event.target.matches("[data-payment-status]")) updatePaymentStatus(event.target.dataset.paymentStatus, event.target.value, event.target);
 });
 ordersBody.addEventListener("click", event => {
+    const lockButton = event.target.closest("[data-order-lock]");
+    if (lockButton) {
+        const orderId = Number(lockButton.dataset.orderLock);
+        const lockedIds = getLockedOrderStatusIds();
+        if (lockedIds.includes(orderId)) {
+            return;
+        }
+
+        openLockConfirmModal(orderId);
+        return;
+    }
+
     const button = event.target.closest("[data-order-details]");
     if (button) viewOrder(button.dataset.orderDetails);
+});
+
+lockDeliveryDone.addEventListener("change", updateLockConfirmState);
+lockPaymentDone.addEventListener("change", updateLockConfirmState);
+confirmLockOrderButton.addEventListener("click", () => {
+    if (!pendingLockOrderId) {
+        return;
+    }
+
+    const lockedIds = getLockedOrderStatusIds();
+    if (!lockedIds.includes(pendingLockOrderId)) {
+        setLockedOrderStatusIds([...lockedIds, pendingLockOrderId]);
+    }
+
+    renderOrders();
+    closeLockConfirmModal();
+});
+document.getElementById("cancelLockConfirm").addEventListener("click", closeLockConfirmModal);
+document.getElementById("closeLockConfirmModal").addEventListener("click", closeLockConfirmModal);
+lockConfirmModal.addEventListener("click", event => {
+    if (event.target === lockConfirmModal) {
+        closeLockConfirmModal();
+    }
 });
 document.getElementById("refreshOrders").addEventListener("click", loadOrders);
 orderStatus.addEventListener("change", loadOrders);
@@ -236,5 +378,6 @@ let searchTimer;
 orderSearch.addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(loadOrders, 300); });
 document.getElementById("closeOrderModal").addEventListener("click", () => { activeOrderId = null; orderModal.classList.add("hidden"); orderModal.classList.remove("flex"); });
 orderModal.addEventListener("click", event => { if (event.target === orderModal) { activeOrderId = null; orderModal.classList.add("hidden"); orderModal.classList.remove("flex"); } });
+updateLockConfirmState();
 loadOrders();
 </script>

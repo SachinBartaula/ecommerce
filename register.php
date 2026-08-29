@@ -3,6 +3,7 @@
 require_once "config/database.php";
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_name("shop_customer_session");
     session_start();
 }
 
@@ -84,10 +85,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if (mysqli_stmt_execute($stmt)) {
 
+            $newUserId = (int) mysqli_insert_id($conn);
+
             // Log the user in immediately after registering
-            $_SESSION["user_id"]   = mysqli_insert_id($conn);
+            $_SESSION["user_id"]   = $newUserId;
             $_SESSION["user_name"] = $name;
             $_SESSION["user_role"] = "customer";
+
+            $_SESSION["customer_id"]   = $newUserId;
+            $_SESSION["customer_name"] = $name;
+            $_SESSION["customer_role"] = "customer";
 
             mysqli_stmt_close($stmt);
 

@@ -101,11 +101,22 @@ require_once "includes/header.php";
         border-color: #2563eb;
         color: #fff;
     }
+
+    .product-card {
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 32px rgba(37, 99, 235, 0.12), 0 6px 16px rgba(15, 23, 42, 0.08);
+    }
 </style>
 
 <script>
 (function () {
 
+    const userLoggedIn = <?php echo isset($_SESSION["user_id"]) ? "true" : "false"; ?>;
     let allProducts = [];
     let activeCategory = "all";
     let searchTerm = "";
@@ -122,6 +133,47 @@ require_once "includes/header.php";
         const div = document.createElement("div");
         div.textContent = str ?? "";
         return div.innerHTML;
+    }
+
+    function addProductToCart(productId, button) {
+        if (!userLoggedIn) {
+            window.location.href = "login.php";
+            return;
+        }
+
+        const originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = "Adding...";
+
+        const formData = new FormData();
+        formData.append("action", "add");
+        formData.append("product_id", productId);
+        formData.append("quantity", 1);
+
+        fetch("api/cart.php", { method: "POST", body: formData })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success) {
+                    button.textContent = "Added ✓";
+                    if (window.updateCartBadge) {
+                        window.updateCartBadge(data.total_count || 0);
+                    }
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                    }, 1200);
+                    return;
+                }
+
+                button.textContent = originalText;
+                button.disabled = false;
+                alert(data.message || "Unable to add this item to the cart.");
+            })
+            .catch(() => {
+                button.textContent = originalText;
+                button.disabled = false;
+                alert("Unable to add this item to the cart. Please try again.");
+            });
     }
 
     function renderSkeleton() {
@@ -187,33 +239,39 @@ require_once "includes/header.php";
             const delay = Math.min(index * 50, 400);
 
             return `
-                <a href="product-details.php?id=${product.id}"
-                    class="card-hover animate-pop bg-white rounded-xl shadow overflow-hidden group"
-                    style="animation-delay:${delay}ms">
-
-                    <div class="relative aspect-square bg-gray-100 overflow-hidden">
-                        ${product.image
-                            ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"
-                                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">`
-                            : `<div class="w-full h-full flex items-center justify-center text-gray-400 text-sm">No Image</div>`
-                        }
-                        ${outOfStock
-                            ? `<span class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-semibold px-2 py-1 rounded-full">OUT OF STOCK</span>`
-                            : ""
-                        }
-                    </div>
+                <div class="product-card card-hover animate-pop bg-white rounded-xl overflow-hidden group" style="animation-delay:${delay}ms">
+                    <a href="product-details.php?id=${product.id}" class="block">
+                        <div class="relative aspect-square bg-gray-100 overflow-hidden">
+                            ${product.image
+                                ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"
+                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">`
+                                : `<div class="w-full h-full flex items-center justify-center text-gray-400 text-sm">No Image</div>`
+                            }
+                            ${outOfStock
+                                ? `<span class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-semibold px-2 py-1 rounded-full">OUT OF STOCK</span>`
+                                : ""
+                            }
+                        </div>
+                    </a>
 
                     <div class="p-4">
                         ${product.category
                             ? `<p class="text-xs text-gray-400 uppercase tracking-wide mb-1">${escapeHtml(product.category)}</p>`
                             : ""
                         }
-                        <h3 class="font-medium text-gray-800 truncate">${escapeHtml(product.name)}</h3>
+                        <a href="product-details.php?id=${product.id}" class="block hover:text-blue-600 transition">
+                            <h3 class="font-medium text-gray-800 truncate">${escapeHtml(product.name)}</h3>
+                        </a>
                         <div class="flex items-center justify-between mt-2">
                             <span class="text-blue-600 font-bold">$${parseFloat(product.price).toFixed(2)}</span>
                         </div>
                     </div>
-                </a>
+
+                    <div class="px-4 pb-4 space-y-2">
+                        <button type="button" class="add-to-cart-btn w-full rounded-lg border border-blue-600 bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700" data-product-id="${product.id}">Add to Cart</button>
+                        <button type="button" class="buy-now-btn w-full rounded-lg border border-blue-600 bg-white px-3 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-50" data-product-id="${product.id}">Buy Now</button>
+                    </div>
+                </div>
             `;
         }).join("");
     }
@@ -284,6 +342,25 @@ require_once "includes/header.php";
     sortSelect.addEventListener("change", (e) => {
         sortBy = e.target.value;
         renderProducts();
+    });
+
+    grid.addEventListener("click", (event) => {
+        const addButton = event.target.closest(".add-to-cart-btn");
+        if (addButton) {
+            if (!addButton.dataset.productId) return;
+            addProductToCart(addButton.dataset.productId, addButton);
+            return;
+        }
+
+        const buyButton = event.target.closest(".buy-now-btn");
+        if (buyButton) {
+            if (!userLoggedIn) {
+                window.location.href = "login.php";
+                return;
+            }
+
+            window.location.href = `checkout.php?buy=${encodeURIComponent(buyButton.dataset.productId)}&qty=1`;
+        }
     });
 
 })();

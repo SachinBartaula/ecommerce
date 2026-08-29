@@ -3,10 +3,16 @@
 require_once __DIR__ . "/../config/database.php";
 
 if (session_status() === PHP_SESSION_NONE) {
+    session_name("shop_admin_session");
     session_start();
 }
 
-if (isset($_SESSION["user_id"]) && ($_SESSION["user_role"] ?? "customer") === "admin") {
+if (
+    isset($_SESSION["user_id"]) && (
+        ($_SESSION["user_role"] ?? "") === "admin" ||
+        ($_SESSION["admin_role"] ?? "") === "admin"
+    )
+) {
     header("Location: index.php");
     exit;
 }
@@ -40,9 +46,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $error = "Invalid admin email or password.";
         } else {
             session_regenerate_id(true);
-            $_SESSION["user_id"] = $user["id"];
+
+            unset($_SESSION["customer_id"], $_SESSION["customer_name"], $_SESSION["customer_role"]);
+
+            $_SESSION["user_id"]   = $user["id"];
             $_SESSION["user_name"] = $user["name"];
             $_SESSION["user_role"] = "admin";
+
+            $_SESSION["admin_id"]   = $user["id"];
+            $_SESSION["admin_name"] = $user["name"];
+            $_SESSION["admin_role"] = "admin";
 
             header("Location: index.php");
             exit;
