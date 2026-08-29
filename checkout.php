@@ -242,8 +242,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 mysqli_stmt_close($stockStmt);
             }
 
-            // Record payment
-            $isPaidOnline = in_array($paymentMethod, ["card", "esewa", "khalti", "imepay"], true);
+            $isPaidOnline = in_array($paymentMethod, ["card", "khalti", "imepay"], true);
             $paymentStatus = $isPaidOnline ? "paid" : "pending";
             $transactionId = $isPaidOnline ? uniqid("txn_", true) : null;
             $paidAt = $isPaidOnline ? date("Y-m-d H:i:s") : null;
@@ -275,6 +274,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
 
             mysqli_commit($conn);
+
+            // eSewa: send the customer to eSewa's checkout page instead of
+            if ($paymentMethod === "esewa") {
+                header("Location: esewa-initiate.php?order_id=" . $newOrderId);
+                exit;
+            }
 
             $orderPlaced = true;
             $orderId     = $newOrderId;
@@ -397,7 +402,7 @@ require_once "includes/header.php";
                                 <p class="text-xs text-gray-500">Popular Nepal online payment</p>
                             </div>
                         </label>
-
+<!-- 
                         <label class="flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer hover:border-blue-400 transition">
                             <input type="radio" name="payment_method" value="khalti"
                                 <?php echo $paymentMethod === 'khalti' ? 'checked' : ''; ?>>
@@ -405,7 +410,7 @@ require_once "includes/header.php";
                                 <p class="font-medium text-gray-800">Khalti</p>
                                 <p class="text-xs text-gray-500">Nepal digital wallet</p>
                             </div>
-                        </label>
+                        </label> -->
 
                         
 
