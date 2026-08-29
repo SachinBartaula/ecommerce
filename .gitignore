@@ -1,5 +1,4 @@
 # Ignore uploaded assets/images
-assets/images/
 
 # Optional: keep the folder structure with a placeholder
 !assets/images/.gitkeep
