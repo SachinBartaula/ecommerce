@@ -24,21 +24,21 @@ $inventorySummary = [
         </div>
 
         <section class="mb-6 grid gap-4 md:grid-cols-3">
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="rounded-2xl bg-white p-5 shadow-sm">
                 <p class="text-sm text-slate-500">Total products</p>
                 <p class="mt-2 text-3xl font-bold text-slate-900"><?php echo number_format($inventorySummary["total_products"]); ?></p>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="rounded-2xl bg-white p-5 shadow-sm">
                 <p class="text-sm text-slate-500">Low stock</p>
                 <p class="mt-2 text-3xl font-bold text-amber-600"><?php echo number_format($inventorySummary["low_stock"]); ?></p>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="rounded-2xl bg-white p-5 shadow-sm">
                 <p class="text-sm text-slate-500">Out of stock</p>
                 <p class="mt-2 text-3xl font-bold text-red-600"><?php echo number_format($inventorySummary["out_of_stock"]); ?></p>
             </div>
         </section>
 
-        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <section class="rounded-2xl bg-white p-5 shadow-sm">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex flex-1 flex-col gap-3 md:flex-row">
                     <label for="inventorySearch" class="sr-only">Search products</label>
@@ -57,7 +57,7 @@ $inventorySummary = [
             </div>
         </section>
 
-        <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-100">
+        <section class="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm">
             <div id="inventoryMessage" class="hidden px-5 py-4 text-sm"></div>
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[900px] table-fixed text-left text-sm">
@@ -82,7 +82,7 @@ $inventorySummary = [
 </main>
 
 <div id="inventoryProductModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 px-4">
-    <div class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+    <div class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl">
         <div class="mb-5 flex items-center justify-between gap-3">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-[0.15em] text-blue-600">Product form</p>
@@ -185,6 +185,126 @@ function setInventoryMessage(message, type = "error") {
     inventoryMessage.classList.remove("hidden");
 }
 
+function showInventoryFieldError(input, message) {
+    if (!input || !input.parentElement) return;
+
+    const parent = input.parentElement;
+    const existingError = parent.querySelector(".inventory-error");
+    if (existingError) existingError.remove();
+
+    input.classList.add("border-red-500", "focus:border-red-500");
+    input.classList.remove("border-slate-300");
+
+    const error = document.createElement("p");
+    error.className = "inventory-error mt-2 text-xs text-red-600";
+    error.textContent = message;
+    parent.appendChild(error);
+}
+
+function clearInventoryFieldError(input) {
+    if (!input || !input.parentElement) return;
+
+    const parent = input.parentElement;
+    const existingError = parent.querySelector(".inventory-error");
+    if (existingError) existingError.remove();
+
+    input.classList.remove("border-red-500", "focus:border-red-500");
+    input.classList.add("border-slate-300");
+}
+
+function clearInventoryFieldErrors() {
+    const fields = [inventoryName, inventoryPrice, inventoryStock, inventoryCategory, inventoryDescription, inventoryImageUrl];
+    fields.forEach(field => {
+        if (field) clearInventoryFieldError(field);
+    });
+}
+
+function validateInventoryName() {
+    const value = inventoryName.value.trim();
+    if (!value) {
+        showInventoryFieldError(inventoryName, "Product name is required.");
+        return false;
+    }
+    if (value.length < 3) {
+        showInventoryFieldError(inventoryName, "Product name must be at least 3 characters.");
+        return false;
+    }
+    if (value.length > 100) {
+        showInventoryFieldError(inventoryName, "Product name cannot exceed 100 characters.");
+        return false;
+    }
+    if (!/^[A-Za-z][A-Za-z0-9\s&'().\/-]*$/.test(value)) {
+        showInventoryFieldError(inventoryName, "Product name must start with a letter and contain valid characters only.");
+        return false;
+    }
+    if (!/[A-Za-z]/.test(value)) {
+        showInventoryFieldError(inventoryName, "Product name must contain at least one letter.");
+        return false;
+    }
+    if (/\s{2,}/.test(value)) {
+        showInventoryFieldError(inventoryName, "Product name cannot contain multiple spaces.");
+        return false;
+    }
+    clearInventoryFieldError(inventoryName);
+    return true;
+}
+
+function validateInventoryForm() {
+    let valid = true;
+
+    if (!validateInventoryName()) valid = false;
+
+    const priceValue = Number(inventoryPrice.value);
+    if (inventoryPrice.value.trim() === "") {
+        showInventoryFieldError(inventoryPrice, "Price is required.");
+        valid = false;
+    } else if (!Number.isFinite(priceValue) || priceValue <= 0) {
+        showInventoryFieldError(inventoryPrice, "Enter a valid price greater than 0.");
+        valid = false;
+    } else {
+        clearInventoryFieldError(inventoryPrice);
+    }
+
+    const stockValue = Number(inventoryStock.value);
+    if (inventoryStock.value.trim() === "") {
+        showInventoryFieldError(inventoryStock, "Stock quantity is required.");
+        valid = false;
+    } else if (!Number.isInteger(stockValue) || stockValue < 0) {
+        showInventoryFieldError(inventoryStock, "Stock must be a whole number and cannot be negative.");
+        valid = false;
+    } else {
+        clearInventoryFieldError(inventoryStock);
+    }
+
+    if (!inventoryCategory.value) {
+        showInventoryFieldError(inventoryCategory, "Please select a category.");
+        valid = false;
+    } else {
+        clearInventoryFieldError(inventoryCategory);
+    }
+
+    const descriptionValue = inventoryDescription.value.trim();
+    if (!descriptionValue) {
+        showInventoryFieldError(inventoryDescription, "Product description is required.");
+        valid = false;
+    } else if (descriptionValue.length < 10) {
+        showInventoryFieldError(inventoryDescription, "Description must be at least 10 characters.");
+        valid = false;
+    } else {
+        clearInventoryFieldError(inventoryDescription);
+    }
+
+    const imageValue = inventoryImageUrl.value.trim();
+    if (imageValue && !/^https?:\/\//i.test(imageValue)) {
+        showInventoryFieldError(inventoryImageUrl, "Image URL must start with http:// or https://.");
+        valid = false;
+    } else {
+        clearInventoryFieldError(inventoryImageUrl);
+    }
+
+    return valid;
+}
+
 function getStockStatus(stock) {
     const value = Number(stock) || 0;
     if (value === 0) return { label: "Out of stock", className: "bg-red-100 text-red-700" };
@@ -203,7 +323,7 @@ function openInventoryModal(product = null) {
         inventoryPrice.value = product.price || "";
         inventoryStock.value = product.stock || "";
         inventoryDescription.value = product.description || "";
-        inventoryImageUrl.value = product.image && product.image.startsWith("http") ? product.image : "";
+        inventoryImageUrl.value = product.image ? product.image : "";
         inventoryImageFile.value = "";
 
         if (product.image) {
@@ -241,6 +361,7 @@ function resetInventoryForm() {
     inventoryPreview.classList.add("hidden");
     inventoryPreviewImage.src = "";
     inventoryModalTitle.textContent = "Add product";
+    clearInventoryFieldErrors();
 }
 
 async function loadCategories() {
@@ -363,8 +484,86 @@ async function deleteInventoryProduct(id) {
     }
 }
 
+inventoryName.addEventListener("input", () => {
+    if (inventoryName.value.trim() === "") {
+        showInventoryFieldError(inventoryName, "Product name is required.");
+        return;
+    }
+    validateInventoryName();
+});
+
+inventoryPrice.addEventListener("input", () => {
+    const value = inventoryPrice.value.trim();
+    if (!value) {
+        showInventoryFieldError(inventoryPrice, "Price is required.");
+        return;
+    }
+    if (!Number.isFinite(Number(value)) || Number(value) <= 0) {
+        showInventoryFieldError(inventoryPrice, "Enter a valid price greater than 0.");
+        return;
+    }
+    clearInventoryFieldError(inventoryPrice);
+});
+
+inventoryStock.addEventListener("input", () => {
+    const value = inventoryStock.value.trim();
+    if (!value) {
+        showInventoryFieldError(inventoryStock, "Stock quantity is required.");
+        return;
+    }
+    if (!Number.isInteger(Number(value)) || Number(value) < 0) {
+        showInventoryFieldError(inventoryStock, "Stock must be a whole number and cannot be negative.");
+        return;
+    }
+    clearInventoryFieldError(inventoryStock);
+});
+
+inventoryCategory.addEventListener("change", () => {
+    if (!inventoryCategory.value) {
+        showInventoryFieldError(inventoryCategory, "Please select a category.");
+        return;
+    }
+    clearInventoryFieldError(inventoryCategory);
+});
+
+inventoryDescription.addEventListener("input", () => {
+    const value = inventoryDescription.value.trim();
+    if (!value) {
+        showInventoryFieldError(inventoryDescription, "Product description is required.");
+        return;
+    }
+    if (value.length < 10) {
+        showInventoryFieldError(inventoryDescription, "Description must be at least 10 characters.");
+        return;
+    }
+    clearInventoryFieldError(inventoryDescription);
+});
+
+inventoryImageUrl.addEventListener("input", () => {
+    const value = inventoryImageUrl.value.trim();
+    if (!value) {
+        clearInventoryFieldError(inventoryImageUrl);
+        return;
+    }
+    if (!/^https?:\/\//i.test(value)) {
+        showInventoryFieldError(inventoryImageUrl, "Image URL must start with http:// or https://.");
+        return;
+    }
+    clearInventoryFieldError(inventoryImageUrl);
+});
+
 inventoryForm.addEventListener("submit", async event => {
     event.preventDefault();
+    clearInventoryFieldErrors();
+
+    if (!validateInventoryForm()) {
+        const firstError = document.querySelector(".inventory-error");
+        if (firstError && firstError.parentElement) {
+            const input = firstError.parentElement.querySelector("input, select, textarea");
+            if (input) input.focus();
+        }
+        return;
+    }
 
     const formData = new FormData(inventoryForm);
     const isUpdate = inventoryAction.value === "update";

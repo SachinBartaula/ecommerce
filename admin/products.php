@@ -61,7 +61,7 @@ require_once "../includes/admin-header.php";
                             for="name"
                             class="block text-sm font-medium mb-2">
 
-                            Product Name
+                            Product Name <span class="text-red-500">*</span>
 
                         </label>
 
@@ -69,6 +69,7 @@ require_once "../includes/admin-header.php";
                             type="text"
                             id="name"
                             name="name"
+                            required
                             class="admin-form-input w-full"
                             placeholder="Enter product name">
 
@@ -82,7 +83,7 @@ require_once "../includes/admin-header.php";
                             for="price"
                             class="block text-sm font-medium mb-2">
 
-                            Price
+                            Price <span class="text-red-500">*</span>
 
                         </label>
 
@@ -90,6 +91,7 @@ require_once "../includes/admin-header.php";
                             type="number"
                             id="price"
                             name="price"
+                            required
                             step="0.01"
                             min="0"
                             class="admin-form-input w-full"
@@ -105,7 +107,7 @@ require_once "../includes/admin-header.php";
                             for="stock"
                             class="block text-sm font-medium mb-2">
 
-                            Stock
+                            Stock <span class="text-red-500">*</span>
 
                         </label>
 
@@ -113,6 +115,7 @@ require_once "../includes/admin-header.php";
                             type="number"
                             id="stock"
                             name="stock"
+                            required
                             min="0"
                             class="admin-form-input w-full"
                             placeholder="Enter stock quantity">
@@ -127,13 +130,14 @@ require_once "../includes/admin-header.php";
                             for="category_id"
                             class="block text-sm font-medium mb-2">
 
-                            Category
+                            Category <span class="text-red-500">*</span>
 
                         </label>
 
                         <select
                             id="category_id"
                             name="category_id"
+                            required
                             class="admin-form-select w-full">
 
                             <option value="">
@@ -157,13 +161,14 @@ require_once "../includes/admin-header.php";
                         for="description"
                         class="block text-sm font-medium mb-2">
 
-                        Description
+                        Description <span class="text-red-500">*</span>
 
                     </label>
 
                     <textarea
                         id="description"
                         name="description"
+                        required
                         rows="4"
                         class="admin-form-input w-full"
                         placeholder="Enter product description"></textarea>
@@ -180,7 +185,7 @@ require_once "../includes/admin-header.php";
                     <label
                         class="block text-sm font-medium mb-2">
 
-                        Product Image
+                        Product Image <span class="text-red-500">*</span>
 
                     </label>
 

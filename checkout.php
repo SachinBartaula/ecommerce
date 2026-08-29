@@ -22,6 +22,44 @@ $orderId         = null;
 $orderTotal      = 0;
 $directBuyProduct = null;
 $directBuyQty     = 1;
+$savedAddresses   = [];
+
+$addressSql = "SELECT id, label, full_name, phone, address, city, postal_code, is_default FROM shipping_addresses WHERE user_id = ? ORDER BY is_default DESC, id DESC";
+$addressStmt = mysqli_prepare($conn, $addressSql);
+mysqli_stmt_bind_param($addressStmt, "i", $userId);
+mysqli_stmt_execute($addressStmt);
+$addressResult = mysqli_stmt_get_result($addressStmt);
+while ($row = mysqli_fetch_assoc($addressResult)) {
+    $savedAddresses[] = $row;
+}
+mysqli_stmt_close($addressStmt);
+
+if ($shippingAddress === "" && !empty($savedAddresses)) {
+    $defaultAddress = null;
+
+    foreach ($savedAddresses as $saved) {
+        if (!empty($saved["is_default"])) {
+            $defaultAddress = $saved;
+            break;
+        }
+    }
+
+    if ($defaultAddress === null) {
+        $defaultAddress = $savedAddresses[0];
+    }
+
+    $addressText = trim(
+        ($defaultAddress["full_name"] ?? "") . ", " .
+        ($defaultAddress["address"] ?? "") . ", " .
+        ($defaultAddress["city"] ?? "") . ", " .
+        ($defaultAddress["postal_code"] ?? "") . ", " .
+        ($defaultAddress["phone"] ?? "")
+    );
+
+    if ($addressText !== "") {
+        $shippingAddress = $addressText;
+    }
+}
 
 $buyProductId = filter_input(INPUT_GET, "buy", FILTER_VALIDATE_INT);
 if ($buyProductId) {
@@ -311,7 +349,23 @@ require_once "includes/header.php";
 
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">Shipping Address</h2>
 
+                    <?php if (!empty($savedAddresses)): ?>
+                        <div class="mb-4">
+                            <label for="saved-address-select" class="mb-2 block text-sm font-medium text-gray-700">Saved addresses</label>
+                            <select id="saved-address-select" class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <option value="new">Use a new address</option>
+                                <?php foreach ($savedAddresses as $savedAddress): ?>
+                                    <?php $savedText = trim(($savedAddress["full_name"] ?? "") . ", " . ($savedAddress["address"] ?? "") . ", " . ($savedAddress["city"] ?? "") . ", " . ($savedAddress["postal_code"] ?? "") . ", " . ($savedAddress["phone"] ?? "")); ?>
+                                    <option value="<?php echo (int) $savedAddress["id"]; ?>" data-address="<?php echo htmlspecialchars($savedText, ENT_QUOTES); ?>">
+                                        <?php echo htmlspecialchars(($savedAddress["label"] ?: "Address") . " - " . $savedAddress["full_name"]); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endif; ?>
+
                     <textarea
+                        id="shipping_address"
                         name="shipping_address"
                         rows="4"
                         class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
@@ -411,6 +465,21 @@ require_once "includes/header.php";
         const div = document.createElement("div");
         div.textContent = str ?? "";
         return div.innerHTML;
+    }
+
+    const addressSelect = document.getElementById("saved-address-select");
+    const shippingAddressField = document.getElementById("shipping_address");
+
+    if (addressSelect && shippingAddressField) {
+        addressSelect.addEventListener("change", function () {
+            const selectedOption = this.options[this.selectedIndex];
+            if (!selectedOption || selectedOption.value === "new") {
+                shippingAddressField.value = "";
+                return;
+            }
+
+            shippingAddressField.value = selectedOption.dataset.address || "";
+        });
     }
 
     const directBuyProduct = <?php echo json_encode($directBuyProduct ? [

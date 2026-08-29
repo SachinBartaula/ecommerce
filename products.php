@@ -6,10 +6,10 @@ require_once "includes/header.php";
 
 <section class="max-w-6xl mx-auto px-6 py-10">
 
-    <h1 class="text-3xl font-bold text-gray-800 mb-2 reveal">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2 ">
         All Products
     </h1>
-    <p class="text-gray-500 mb-8 reveal">
+    <p class="text-gray-500 mb-8 ">
         Browse our full catalog &mdash; filter, search, and sort instantly.
     </p>
 
@@ -111,6 +111,49 @@ require_once "includes/header.php";
         transform: translateY(-4px);
         box-shadow: 0 16px 32px rgba(37, 99, 235, 0.12), 0 6px 16px rgba(15, 23, 42, 0.08);
     }
+
+    .product-image-actions {
+        position: absolute;
+        right: 0.75rem;
+        bottom: 0.75rem;
+        display: flex;
+        gap: 0.5rem;
+        opacity: 1;
+        transform: translateY(0);
+        transition: all 0.2s ease;
+    }
+
+    .product-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.7rem;
+        height: 2.7rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.94);
+        color: #1d4ed8;
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+        transition: all 0.2s ease;
+    }
+
+    .product-action-btn:hover {
+        background: #ffffff;
+        transform: translateY(-1px);
+    }
+
+    .product-action-btn.is-loading {
+        opacity: 0.8;
+    }
+
+    .product-action-btn svg {
+        width: 1.15rem;
+        height: 1.15rem;
+    }
+
+    .product-action-btn.buy-now-btn {
+        color: #0f172a;
+    }
 </style>
 
 <script>
@@ -141,9 +184,30 @@ require_once "includes/header.php";
             return;
         }
 
-        const originalText = button.textContent;
+        const originalHtml = button.innerHTML;
+        const loadingSvg = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2v4"></path>
+                <path d="M12 18v4"></path>
+                <path d="M4.93 4.93l2.83 2.83"></path>
+                <path d="M16.24 16.24l2.83 2.83"></path>
+                <path d="M2 12h4"></path>
+                <path d="M18 12h4"></path>
+                <path d="M4.93 19.07l2.83-2.83"></path>
+                <path d="M16.24 7.76l2.83-2.83"></path>
+            </svg>
+        `;
+
+        const successSvg = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12.5l4.2 4.2L19 2.5"></path>
+            </svg>
+        `;
+
         button.disabled = true;
-        button.textContent = "Adding...";
+        button.classList.add("is-loading");
+        button.setAttribute("aria-label", "Adding to cart");
+        button.innerHTML = loadingSvg;
 
         const formData = new FormData();
         formData.append("action", "add");
@@ -154,24 +218,30 @@ require_once "includes/header.php";
             .then((response) => response.json())
             .then((data) => {
                 if (data.success) {
-                    button.textContent = "Added ✓";
+                    button.innerHTML = successSvg;
                     if (window.updateCartBadge) {
                         window.updateCartBadge(data.total_count || 0);
                     }
                     setTimeout(() => {
-                        button.textContent = originalText;
+                        button.innerHTML = originalHtml;
                         button.disabled = false;
-                    }, 1200);
+                        button.classList.remove("is-loading");
+                        button.setAttribute("aria-label", "Add to cart");
+                    }, 1000);
                     return;
                 }
 
-                button.textContent = originalText;
+                button.innerHTML = originalHtml;
                 button.disabled = false;
+                button.classList.remove("is-loading");
+                button.setAttribute("aria-label", "Add to cart");
                 alert(data.message || "Unable to add this item to the cart.");
             })
             .catch(() => {
-                button.textContent = originalText;
+                button.innerHTML = originalHtml;
                 button.disabled = false;
+                button.classList.remove("is-loading");
+                button.setAttribute("aria-label", "Add to cart");
                 alert("Unable to add this item to the cart. Please try again.");
             });
     }
@@ -240,13 +310,31 @@ require_once "includes/header.php";
 
             return `
                 <div class="product-card card-hover animate-pop bg-white rounded-xl overflow-hidden group" style="animation-delay:${delay}ms">
-                    <a href="product-details.php?id=${product.id}" class="block">
-                        <div class="relative aspect-square bg-gray-100 overflow-hidden">
+                    <a href="product-details.php?id=${product.id}" class="block p-3">
+                        <div class="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
                             ${product.image
                                 ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"
                                      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">`
                                 : `<div class="w-full h-full flex items-center justify-center text-gray-400 text-sm">No Image</div>`
                             }
+
+                            <div class="product-image-actions">
+                                <button type="button" class="product-action-btn add-to-cart-btn" data-product-id="${product.id}" aria-label="Add to cart" title="Add to cart">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <circle cx="9" cy="19" r="1.6"></circle>
+                                        <circle cx="17" cy="19" r="1.6"></circle>
+                                        <path d="M3 4h2l2.8 10.2a1 1 0 0 0 1 .8H17a1 1 0 0 0 1-.8L20 7H7"></path>
+                                    </svg>
+                                </button>
+                                <button type="button" class="product-action-btn buy-now-btn" data-product-id="${product.id}" aria-label="Buy now" title="Buy now">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M12 2v20"></path>
+                                        <path d="M17 7l-5-5-5 5"></path>
+                                        <path d="M7 17l5 5 5-5"></path>
+                                    </svg>
+                                </button>
+                            </div>
+
                             ${outOfStock
                                 ? `<span class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-semibold px-2 py-1 rounded-full">OUT OF STOCK</span>`
                                 : ""
@@ -254,7 +342,7 @@ require_once "includes/header.php";
                         </div>
                     </a>
 
-                    <div class="p-4">
+                    <div class="border-t border-slate-200 p-4">
                         ${product.category
                             ? `<p class="text-xs text-gray-400 uppercase tracking-wide mb-1">${escapeHtml(product.category)}</p>`
                             : ""
@@ -265,11 +353,6 @@ require_once "includes/header.php";
                         <div class="flex items-center justify-between mt-2">
                             <span class="text-blue-600 font-bold">$${parseFloat(product.price).toFixed(2)}</span>
                         </div>
-                    </div>
-
-                    <div class="px-4 pb-4 space-y-2">
-                        <button type="button" class="add-to-cart-btn w-full rounded-lg border border-blue-600 bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700" data-product-id="${product.id}">Add to Cart</button>
-                        <button type="button" class="buy-now-btn w-full rounded-lg border border-blue-600 bg-white px-3 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-50" data-product-id="${product.id}">Buy Now</button>
                     </div>
                 </div>
             `;
@@ -347,6 +430,8 @@ require_once "includes/header.php";
     grid.addEventListener("click", (event) => {
         const addButton = event.target.closest(".add-to-cart-btn");
         if (addButton) {
+            event.preventDefault();
+            event.stopPropagation();
             if (!addButton.dataset.productId) return;
             addProductToCart(addButton.dataset.productId, addButton);
             return;
@@ -354,6 +439,8 @@ require_once "includes/header.php";
 
         const buyButton = event.target.closest(".buy-now-btn");
         if (buyButton) {
+            event.preventDefault();
+            event.stopPropagation();
             if (!userLoggedIn) {
                 window.location.href = "login.php";
                 return;

@@ -64,7 +64,7 @@ if ($result) {
 </section>
 
 <div class="relative z-10 -mt-7 max-w-5xl mx-auto px-6">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-2xl bg-white p-4 shadow-xl ring-1 ring-slate-100">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-2xl bg-white p-4">
         <div class="flex items-center gap-3 rounded-xl bg-blue-50 px-4 py-3">
             <span class="text-2xl">🚚</span>
             <div><p class="text-sm font-bold text-slate-800">Fast delivery</p><p class="text-xs text-slate-500">Right to your door</p></div>
@@ -86,9 +86,8 @@ if ($result) {
 =========================================== -->
 <section class="max-w-6xl mx-auto px-6 py-16">
 
-    <div class="flex items-center justify-between mb-8 reveal">
+    <div class="flex items-center justify-between mb-8 ">
         <div>
-            <p class="text-xs font-extrabold uppercase tracking-[.18em] text-fuchsia-600 mb-1">Handpicked collection</p>
             <h2 class="text-2xl md:text-3xl font-black text-gray-800">Featured Products</h2>
         </div>
         <a href="products.php" class="rounded-full bg-blue-50 px-4 py-2 text-blue-700 text-sm font-bold hover:bg-blue-100 transition-colors">
@@ -109,51 +108,53 @@ if ($result) {
             <?php foreach ($featuredProducts as $index => $product): ?>
 
                 <a href="product-details.php?id=<?php echo (int) $product['id']; ?>"
-                    class="reveal card-hover bg-white rounded-2xl shadow-md ring-1 ring-slate-100 overflow-hidden group"
+                    class="reveal card-hover group overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-300"
                     style="transition-delay: <?php echo min($index * 70, 350); ?>ms;">
 
-                    <div class="relative aspect-square bg-gradient-to-br from-blue-50 via-white to-fuchsia-50 overflow-hidden">
+                    <div class="p-3">
+                        <div class="relative aspect-square overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 via-blue-50 to-fuchsia-50">
 
-                        <?php if ($index < 3): ?>
-                            <span class="absolute top-3 left-3 z-10 text-[10px] font-bold text-white px-3 py-1.5 rounded-full shimmer-badge shadow-md">
-                                NEW
-                            </span>
-                        <?php endif; ?>
+                            <?php if ($index < 3): ?>
+                                <span class="absolute left-3 top-3 z-10 rounded-full bg-blue-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
+                                    New
+                                </span>
+                            <?php endif; ?>
 
-                        <?php if (!empty($product['image'])): ?>
-                            <img
-                                src="<?php echo htmlspecialchars($product['image']); ?>"
-                                alt="<?php echo htmlspecialchars($product['name']); ?>"
-                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                        <?php else: ?>
-                            <div class="w-full h-full flex items-center justify-center text-blue-300 text-sm font-bold">
-                                <span class="rounded-full bg-white/80 px-4 py-2">No Image</span>
-                            </div>
-                        <?php endif; ?>
+                            <?php if (!empty($product['image'])): ?>
+                                <img
+                                    src="<?php echo htmlspecialchars($product['image']); ?>"
+                                    alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110">
+                            <?php else: ?>
+                                <div class="flex h-full w-full items-center justify-center text-sm font-bold text-blue-300">
+                                    <span class="rounded-full bg-white/80 px-4 py-2">No Image</span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
 
-                    <div class="p-5">
-
+                    <div class="border-t border-slate-200 p-4">
                         <?php if (!empty($product['category'])): ?>
-                            <p class="text-[10px] text-fuchsia-600 font-bold uppercase tracking-[.16em] mb-1">
+                            <p class="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-fuchsia-600">
                                 <?php echo htmlspecialchars($product['category']); ?>
                             </p>
                         <?php endif; ?>
 
-                        <h3 class="font-bold text-gray-800 truncate">
+                        <h3 class="truncate text-base font-bold text-slate-800">
                             <?php echo htmlspecialchars($product['name']); ?>
                         </h3>
 
-                        <div class="flex items-center justify-between mt-2">
-                            <span class="text-blue-700 font-black text-lg">
+                        <div class="mt-3 flex items-center justify-between gap-2">
+                            <span class="text-lg font-black text-blue-700">
                                 $<?php echo number_format((float) $product['price'], 2); ?>
                             </span>
 
                             <?php if ((int) $product['stock'] <= 0): ?>
-                                <span class="text-xs text-red-500 font-medium">Out of stock</span>
+                                <span class="rounded-full bg-red-50 px-2 py-1 text-[10px] font-semibold text-red-600">Out of stock</span>
+                            <?php else: ?>
+                                <span class="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-600">In stock</span>
                             <?php endif; ?>
                         </div>
-
                     </div>
 
                 </a>

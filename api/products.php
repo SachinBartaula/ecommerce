@@ -51,7 +51,7 @@ if ($requestMethod === "POST" && ($_POST["action"] ?? "") === "update") {
     $categoryId = filter_var($_POST["category_id"] ?? "", FILTER_VALIDATE_INT);
     $imageUrl = trim($_POST["image_url"] ?? "");
 
-    if (!$productId || $name === "" || strlen($name) < 3 || !is_numeric($price) || $price <= 0 || $stock === "" || !is_numeric($stock) || $stock < 0 || !$categoryId || $description === "") {
+    if (!$productId || $name === "" || strlen($name) < 3 || !is_numeric($price) || $price <= 0 || $stock === "" || !is_numeric($stock) || $stock < 0 || !$categoryId || $description === "" || strlen($description) < 10) {
         echo json_encode(["success" => false, "message" => "Please provide valid product details."]);
         exit;
     }
@@ -185,6 +185,14 @@ if ($requestMethod === "POST") {
         exit;
     }
 
+    if (!preg_match('/^[A-Za-z][A-Za-z0-9\s&\'\(\)\.\/-]*$/', $name)) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Product name must start with a letter and use valid characters only."
+        ]);
+        exit;
+    }
+
     if (!is_numeric($price) || $price <= 0) {
         echo json_encode([
             "success" => false,
@@ -205,6 +213,14 @@ if ($requestMethod === "POST") {
         echo json_encode([
             "success" => false,
             "message" => "Category is required."
+        ]);
+        exit;
+    }
+
+    if ($description === "" || strlen($description) < 10) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Description must be at least 10 characters."
         ]);
         exit;
     }
@@ -294,6 +310,14 @@ if ($requestMethod === "POST") {
     elseif ($image_url !== "") {
 
         $image = $image_url;
+    }
+
+    else {
+        echo json_encode([
+            "success" => false,
+            "message" => "Please provide an image URL or upload an image."
+        ]);
+        exit;
     }
 
 

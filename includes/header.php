@@ -131,12 +131,11 @@ $basePath = rtrim($basePath, "/");
         }
 
         .card-hover {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s ease;
         }
 
         .card-hover:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
         }
 
         .public-page {
@@ -176,9 +175,16 @@ $basePath = rtrim($basePath, "/");
             animation: siteEnter .45s ease-out both;
         }
 
-        .public-page main .bg-white {
-            border: 1px solid rgba(226, 232, 240, .8);
-            box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+        .public-page main .bg-white,
+        .public-page main [class*="rounded-2xl"].bg-white,
+        .public-page main [class*="rounded-xl"].bg-white,
+        .public-page main [class*="rounded-lg"].bg-white,
+        .public-page main .featured-product-card,
+        .public-page main .product-card,
+        .public-page main .cart-row,
+        .public-page main .reveal {
+            border: 1px solid rgba(226, 232, 240, .7);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .04);
         }
 
         @keyframes siteFloat {
@@ -225,9 +231,12 @@ $basePath = rtrim($basePath, "/");
                         </a>
                     <?php endif; ?>
 
-                    <span class="text-gray-400">
-                        Hi, <?php echo htmlspecialchars($userName); ?>
-                    </span>
+                    <a href="<?php echo $basePath; ?>/profile.php"
+                        class="nav-link text-gray-600 hover:text-blue-600 <?php echo $currentPage === 'profile.php' ? 'text-blue-600 active' : ''; ?>">
+                        👤Hi, <?php echo htmlspecialchars($userName); ?>
+                    </a>
+
+                    
 
                 <a href="<?php echo $basePath; ?>/index.php"
                     class="nav-link <?php echo $currentPage === 'index.php' ? 'text-blue-600 active' : 'hover:text-blue-600'; ?>">
@@ -317,9 +326,13 @@ $basePath = rtrim($basePath, "/");
                         </a>
                     <?php endif; ?>
 
-                    <span class="py-3 border-b border-gray-100 text-gray-400">
+                    <a href="<?php echo $basePath; ?>/profile.php" class="py-3 border-b border-gray-100 text-gray-600 <?php echo $currentPage === 'profile.php' ? 'text-blue-600' : ''; ?>">
                         Hi, <?php echo htmlspecialchars($userName); ?>
-                    </span>
+                    </a>
+
+                    <a href="<?php echo $basePath; ?>/profile.php" class="py-3 border-b border-gray-100 <?php echo $currentPage === 'profile.php' ? 'text-blue-600' : ''; ?>">
+                        Profile
+                    </a>
 
                     <a href="<?php echo $basePath; ?>/logout.php?role=customer" class="py-3 text-red-600 font-semibold">
                         Logout

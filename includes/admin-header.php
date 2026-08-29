@@ -59,6 +59,7 @@ $adminTitle = $pageTitle ?? "Admin";
                 <a href="products.php" class="admin-nav-link rounded-lg px-4 py-2 text-sm font-semibold <?php echo $adminPage === "products.php" ? "active" : ""; ?>">Products</a>
                 <a href="inventory.php" class="admin-nav-link rounded-lg px-4 py-2 text-sm font-semibold <?php echo $adminPage === "inventory.php" ? "active" : ""; ?>">Inventory</a>
                 <a href="categories.php" class="admin-nav-link rounded-lg px-4 py-2 text-sm font-semibold <?php echo $adminPage === "categories.php" ? "active" : ""; ?>">Categories</a>
+                <a href="customers.php" class="admin-nav-link rounded-lg px-4 py-2 text-sm font-semibold <?php echo $adminPage === "customers.php" ? "active" : ""; ?>">Customers</a>
                 <a href="orders.php" class="admin-nav-link rounded-lg px-4 py-2 text-sm font-semibold <?php echo $adminPage === "orders.php" ? "active" : ""; ?>">Orders</a>
                 <span class="mx-3 h-6 w-px bg-white/15"></span>
                 <a href="../logout.php?role=admin" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-blue-100">Log out</a>
@@ -73,6 +74,7 @@ $adminTitle = $pageTitle ?? "Admin";
                 <a href="products.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold <?php echo $adminPage === "products.php" ? "active" : ""; ?>">Products</a>
                 <a href="inventory.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold <?php echo $adminPage === "inventory.php" ? "active" : ""; ?>">Inventory</a>
                 <a href="categories.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold <?php echo $adminPage === "categories.php" ? "active" : ""; ?>">Categories</a>
+                <a href="customers.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold <?php echo $adminPage === "customers.php" ? "active" : ""; ?>">Customers</a>
                 <a href="orders.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold <?php echo $adminPage === "orders.php" ? "active" : ""; ?>">Orders</a>
                 <a href="../products.php" class="admin-nav-link rounded-lg px-3 py-3 text-sm font-semibold">View storefront</a>
                 <a href="../logout.php?role=admin" class="mt-2 rounded-lg px-3 py-3 text-sm font-semibold text-red-300 hover:bg-white/10">Log out</a>

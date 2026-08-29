@@ -12,7 +12,7 @@ require_once "../includes/admin-header.php";
             <p class="mt-2 text-sm text-slate-500">Create and maintain the categories used across your products.</p>
         </div>
 
-        <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section class="rounded-xl bg-white p-6 shadow-sm">
             <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <h2 class="text-xl font-semibold text-slate-900">Categories</h2>
                 <span id="categoryStatus" class="text-sm text-slate-500" role="status"></span>
@@ -119,7 +119,7 @@ async function loadCategories() {
         }
 
         categoriesContainer.innerHTML = result.data.map(category => `
-            <div class="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <div class="flex items-center justify-between rounded-lg bg-slate-50 p-4">
                 <span class="truncate pr-3 text-sm font-semibold text-slate-700">${category.name}</span>
                 <div class="flex shrink-0 gap-2">
                     <button type="button" class="text-sm font-semibold text-blue-600 hover:text-blue-800" onclick="editCategory(${category.id})">Edit</button>

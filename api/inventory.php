@@ -18,7 +18,7 @@ if (!isset($_SESSION["user_id"]) || ($_SESSION["user_role"] ?? "customer") !== "
 $requestMethod = $_SERVER["REQUEST_METHOD"] ?? "GET";
 
 if ($requestMethod === "GET") {
-    $sql = "SELECT products.id, products.name, products.stock, products.image, categories.name AS category FROM products LEFT JOIN categories ON categories.id = products.category_id ORDER BY products.stock ASC, products.name ASC";
+    $sql = "SELECT products.id, products.name, products.description, products.price, products.stock, products.category_id, products.image, categories.name AS category FROM products LEFT JOIN categories ON categories.id = products.category_id ORDER BY products.stock ASC, products.name ASC";
     $result = mysqli_query($conn, $sql);
 
     if (!$result) {

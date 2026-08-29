@@ -30,7 +30,7 @@ require_once "../includes/admin-header.php";
             <span id="ordersCount" class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 ring-1 ring-inset ring-blue-200"></span>
         </div>
 
-        <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <section class="rounded-2xl bg-white p-5 shadow-sm">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
                 <label for="orderSearch" class="sr-only">Search orders</label>
                 <input id="orderSearch" type="search" class="flex-1 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700 shadow-sm transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100" placeholder="Search by order number, customer, or email">
@@ -47,7 +47,7 @@ require_once "../includes/admin-header.php";
             </div>
         </section>
 
-        <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-100">
+        <section class="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm">
             <div id="ordersMessage" class="hidden px-5 py-4 text-sm"></div>
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[900px] text-left text-sm">
@@ -80,11 +80,11 @@ require_once "../includes/admin-header.php";
 
         <div class="space-y-4 text-sm text-slate-600">
             <p>Before locking this order, confirm both conditions are complete.</p>
-            <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+            <label class="flex items-start gap-3 rounded-xl bg-slate-50 px-3 py-2">
                 <input id="lockDeliveryDone" type="checkbox" class="mt-1 h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500">
                 <span>Delivery is completed.</span>
             </label>
-            <label class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+            <label class="flex items-start gap-3 rounded-xl bg-slate-50 px-3 py-2">
                 <input id="lockPaymentDone" type="checkbox" class="mt-1 h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500">
                 <span>Payment is completed.</span>
             </label>
