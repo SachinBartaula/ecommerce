@@ -28,97 +28,240 @@ if ($result) {
     }
 }
 
-// Pick a real product photo for the hero visual when one is available,
-// otherwise fall back to a bundled sample image.
-$heroImage = null;
-foreach ($featuredProducts as $product) {
-    if (!empty($product['image'])) {
-        $heroImage = $product['image'];
-        break;
-    }
-}
-if ($heroImage === null) {
-    $heroImage = $basePath . "/assets/images/products/product_6a925ff8e87697.83308134.jpg";
-}
+// Images for the hero slider. These are pulled from Unsplash (free to use).
+// Swap these URLs for your own hosted images any time.
+$heroSlides = [
+    [
+        'image' => 'https://images.unsplash.com/photo-1501059104508-e158516511cd?q=80&w=1600&auto=format&fit=crop',
+        'alt'   => 'Acoustic guitar close up',
+    ],
+    [
+        'image' => 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=1600&auto=format&fit=crop',
+        'alt'   => 'Electric guitars on display',
+    ],
+    [
+        'image' => 'https://images.unsplash.com/photo-1627928173110-9818c7fd7c43?q=80&w=1600&auto=format&fit=crop',
+        'alt'   => 'Drum kit in a studio',
+    ],
+    [
+        'image' => 'https://images.unsplash.com/photo-1641227169487-36d5922339af?q=80&w=1600&auto=format&fit=crop',
+        'alt'   => 'Piano keys close up',
+    ],
+    [
+        'image' => 'https://images.unsplash.com/photo-1618609377864-68609b857e90?q=80&w=1600&auto=format&fit=crop',
+        'alt'   => 'DJ audio mixing equipment',
+    ],
+];
 ?>
 
 <!-- ==========================================
-     HERO
+     HERO (sliding images)
 =========================================== -->
 <section class="relative overflow-hidden bg-blue-700 text-white">
 
-    <!-- floating decorative blobs -->
-    <div class="pointer-events-none absolute -top-10 -left-10 w-72 h-72 bg-white/5 rounded-full blur-2xl animate-blob"></div>
-    <div class="pointer-events-none absolute bottom-0 right-0 w-96 h-96 bg-cyan-400/10 rounded-full blur-2xl animate-blob" style="animation-delay: -3s;"></div>
-    <div class="pointer-events-none absolute top-12 right-[12%] h-24 w-24 rotate-45 rounded-3xl border border-white/15"></div>
+    <div class="hero-slider relative h-[520px] md:h-[600px] overflow-hidden" id="heroSlider">
 
-    <div class="relative max-w-6xl mx-auto px-6 py-16 md:py-24">
-        <div class="grid items-center gap-12 md:grid-cols-2">
-
-            <!-- Copy -->
-            <div class="text-center md:text-left">
-                <span class="inline-flex items-center gap-2 rounded-full border border-blue-300/30 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[.18em] text-blue-100 animate-fade-up">
-                    <span class="h-2 w-2 rounded-full bg-amber-400"></span>
-                     Discover Music
-                </span>
-
-                <h1 class="text-4xl md:text-5xl font-black leading-tight mb-5 mt-5 animate-fade-up" style="animation-delay: 0.05s;">
-                    Your Sound Starts Here<br>at MusicPasal
-                </h1>
-
-                <p class="max-w-md mx-auto md:mx-0 text-blue-100 text-lg mb-9 animate-fade-up" style="animation-delay: 0.2s;">
-                    Find premium music instruments and audio equipment at unbeatable prices.
-                </p>
-
-                <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 animate-fade-up" style="animation-delay: 0.35s;">
-                    <a href="products.php"
-                        class="inline-block bg-amber-400 text-blue-900 font-bold px-9 py-3.5 rounded-full hover:bg-amber-300 hover:scale-105 transition-all duration-200 shadow-xl">
-                        Explore Catalog
-                    </a>
-                    <a href="products.php"
-                        class="inline-flex items-center gap-2 border border-white/30 text-white font-semibold px-6 py-3.5 rounded-full hover:bg-white/10 transition-all duration-200">
-                        🎧 New Arrivals
-                    </a>
+        <div class="hero-track absolute inset-0 flex h-full" id="heroTrack">
+            <?php
+            // Duplicate the first slide at the end so the track can slide
+            // seamlessly from the last image back to the first.
+            $slidesForTrack = $heroSlides;
+            if (!empty($heroSlides)) {
+                $slidesForTrack[] = $heroSlides[0];
+            }
+            ?>
+            <?php foreach ($slidesForTrack as $index => $slide): ?>
+                <div class="hero-slide relative h-full w-full flex-shrink-0" data-index="<?php echo $index; ?>">
+                    <img
+                        src="<?php echo htmlspecialchars($slide['image']); ?>"
+                        alt="<?php echo htmlspecialchars($slide['alt']); ?>"
+                        class="h-full w-full object-cover"
+                        loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>">
+                    <div class="absolute inset-0 bg-gradient-to-t from-blue-900/80 via-blue-900/40 to-blue-900/20"></div>
                 </div>
-            </div>
-
-            <!-- Hero visual -->
-            <div class="relative mx-auto w-full max-w-sm animate-fade-up" style="animation-delay: 0.15s;">
-
-                <div class="absolute -inset-4 rounded-[2rem] bg-white/10"></div>
-
-                <div class="relative rounded-[1.75rem] bg-white p-4 shadow-2xl">
-                    <div class="overflow-hidden rounded-2xl bg-blue-50">
-                        <img
-                            src="<?php echo htmlspecialchars($heroImage); ?>"
-                            alt="Featured instrument at MusicPasal"
-                            class="h-72 w-full object-cover sm:h-80">
-                    </div>
-                </div>
-
-                <!-- floating badge: rating -->
-                <div class="absolute -left-6 top-6 flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-slate-800 shadow-xl">
-                    <span class="text-xl">⭐</span>
-                    <div class="leading-tight">
-                        <p class="text-sm font-black">4.9/5</p>
-                        <p class="text-[11px] text-slate-500">Customer rated</p>
-                    </div>
-                </div>
-
-                <!-- floating badge: delivery -->
-                <div class="absolute -right-4 bottom-6 flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-slate-800 shadow-xl">
-                    <span class="text-xl">🚚</span>
-                    <div class="leading-tight">
-                        <p class="text-sm font-black">Fast Delivery</p>
-                        <p class="text-[11px] text-slate-500">To your doorstep</p>
-                    </div>
-                </div>
-
-            </div>
-
+            <?php endforeach; ?>
         </div>
+
+        <!-- overlay content -->
+        <div class="pointer-events-none relative z-10 flex h-full items-center">
+            <div class="pointer-events-auto max-w-6xl mx-auto px-6 w-full">
+                <div class="max-w-xl text-center md:text-left">
+
+                    <span class="inline-flex items-center gap-2 rounded-full border border-blue-300/30 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[.18em] text-blue-100">
+                        <span class="h-2 w-2 rounded-full bg-amber-400"></span>
+                        Discover Music
+                    </span>
+
+                    <h1 class="text-4xl md:text-5xl font-black leading-tight mb-5 mt-5">
+                        Your Sound Starts Here<br>at MusicPasal
+                    </h1>
+
+                    <p class="max-w-md mx-auto md:mx-0 text-blue-100 text-lg mb-9">
+                        Find premium music instruments and audio equipment at unbeatable prices.
+                    </p>
+
+                    <div class="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                        <a href="products.php"
+                            class="inline-block bg-amber-400 text-blue-900 font-bold px-9 py-3.5 rounded-full hover:bg-amber-300 hover:scale-105 transition-all duration-200 shadow-xl">
+                            Explore Catalog
+                        </a>
+                        <a href="products.php"
+                            class="inline-flex items-center gap-2 border border-white/30 text-white font-semibold px-6 py-3.5 rounded-full hover:bg-white/10 transition-all duration-200">
+                            🎧 New Arrivals
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- prev / next arrows -->
+        <button type="button" class="hero-arrow hero-prev absolute left-4 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur hover:bg-white/25 transition-colors" aria-label="Previous slide">
+            &#10094;
+        </button>
+        <button type="button" class="hero-arrow hero-next absolute right-4 top-1/2 z-20 -translate-y-1/2 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur hover:bg-white/25 transition-colors" aria-label="Next slide">
+            &#10095;
+        </button>
+
+        <!-- dots -->
+        <div class="hero-dots absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+            <?php foreach ($heroSlides as $index => $slide): ?>
+                <button type="button"
+                    class="hero-dot h-2.5 w-2.5 rounded-full bg-white/40 transition-all duration-200 <?php echo $index === 0 ? 'is-active' : ''; ?>"
+                    data-index="<?php echo $index; ?>"
+                    aria-label="Go to slide <?php echo $index + 1; ?>">
+                </button>
+            <?php endforeach; ?>
+        </div>
+
     </div>
 </section>
+
+<style>
+    .hero-track {
+        transition: transform 1.1s cubic-bezier(.65, 0, .35, 1);
+        will-change: transform;
+    }
+    .hero-track.no-transition {
+        transition: none;
+    }
+    .hero-dot.is-active {
+        background: #fbbf24; /* amber-400 */
+        width: 1.5rem;
+        border-radius: 9999px;
+    }
+    .hero-arrow {
+        font-size: 1rem;
+        line-height: 1;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .hero-track { transition: none; }
+    }
+</style>
+
+<script>
+(function () {
+    var slider = document.getElementById('heroSlider');
+    var track  = document.getElementById('heroTrack');
+    if (!slider || !track) return;
+
+    var realSlides = track.querySelectorAll('.hero-slide');
+    var dots = slider.querySelectorAll('.hero-dot');
+    var prevBtn = slider.querySelector('.hero-prev');
+    var nextBtn = slider.querySelector('.hero-next');
+
+    // realSlides includes one cloned slide at the end for a seamless loop.
+    var total = realSlides.length; // includes clone
+    var realTotal = total - 1;     // actual number of dots
+    var current = 0;
+    var intervalMs = 4500;
+    var timer = null;
+
+    function setPosition(withTransition) {
+        if (!withTransition) {
+            track.classList.add('no-transition');
+        } else {
+            track.classList.remove('no-transition');
+        }
+        track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    }
+
+    function setActiveDot(index) {
+        dots.forEach(function (dot) {
+            dot.classList.toggle('is-active', parseInt(dot.getAttribute('data-index'), 10) === index);
+        });
+    }
+
+    function goTo(index) {
+        current = index;
+        setActiveDot(current % realTotal);
+        setPosition(true);
+    }
+
+    function next() {
+        current++;
+        setActiveDot(current % realTotal);
+        setPosition(true);
+    }
+
+    function prev() {
+        if (current === 0) {
+            // jump instantly to the clone position, then slide back smoothly
+            current = realTotal;
+            setPosition(false);
+            track.offsetHeight; // force reflow
+            current = realTotal - 1;
+            setActiveDot(current);
+            setPosition(true);
+            return;
+        }
+        current--;
+        setActiveDot(current);
+        setPosition(true);
+    }
+
+    // When we land on the cloned final slide, snap back to the real first
+    // slide with no visible transition, so the loop feels continuous.
+    track.addEventListener('transitionend', function () {
+        if (current === realTotal) {
+            current = 0;
+            setPosition(false);
+        }
+    });
+
+    function startAuto() {
+        stopAuto();
+        if (realTotal > 1) {
+            timer = setInterval(next, intervalMs);
+        }
+    }
+
+    function stopAuto() {
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+    }
+
+    if (nextBtn) nextBtn.addEventListener('click', function () { next(); startAuto(); });
+    if (prevBtn) prevBtn.addEventListener('click', function () { prev(); startAuto(); });
+
+    dots.forEach(function (dot) {
+        dot.addEventListener('click', function () {
+            goTo(parseInt(dot.getAttribute('data-index'), 10));
+            startAuto();
+        });
+    });
+
+    slider.addEventListener('mouseenter', stopAuto);
+    slider.addEventListener('mouseleave', startAuto);
+
+    window.addEventListener('resize', function () { setPosition(false); });
+
+    setPosition(false);
+    startAuto();
+})();
+</script>
 
 <div class="relative z-10 -mt-7 max-w-5xl mx-auto px-6">
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-2xl bg-white p-4">
