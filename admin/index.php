@@ -97,7 +97,7 @@ require_once "../includes/admin-header.php";
     .status-pill { border-radius: 999px; padding: .25rem .6rem; font-size: .72rem; font-weight: 700; text-transform: capitalize; }
     .status-pending { background: #fff7ed; color: #c2410c; }
     .status-confirmed { background: #eff6ff; color: #1d4ed8; }
-    .status-shipped { background: #f5f3ff; color: #6d28d9; }
+    .status-shipped { background: #f5f3ff; color: #1e40af; }
     .status-delivered { background: #ecfdf5; color: #047857; }
     .status-cancelled { background: #fef2f2; color: #b91c1c; }
     @media (prefers-reduced-motion: reduce) { .admin-stat { animation: none; } }

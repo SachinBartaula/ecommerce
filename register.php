@@ -143,7 +143,7 @@ require_once "includes/header.php";
     .auth-card {
         animation: fadeInUp .55s ease-out both;
         border: 1px solid #e2e8f0;
-        border-top: 4px solid #2563eb;
+        border-top: 4px solid #1d4ed8;
         box-shadow: 0 12px 28px rgba(15, 23, 42, .08);
     }
 
@@ -160,7 +160,7 @@ require_once "includes/header.php";
 
     .auth-input:focus {
         background: #fff;
-        border-color: #2563eb;
+        border-color: #1d4ed8;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
     }
 
@@ -183,9 +183,12 @@ require_once "includes/header.php";
     <div class="auth-card w-full max-w-md bg-white rounded-xl p-8">
 
         <div class="mb-7">
+            <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-2xl">
+                🎧
+            </div>
             <p class="text-xs font-semibold uppercase tracking-wider text-blue-600 mb-2">Get started</p>
             <h1 class="text-2xl font-bold text-gray-800">Create an Account</h1>
-            <p class="text-sm text-gray-500 mt-2">Join ShopEase and start exploring.</p>
+            <p class="text-sm text-gray-500 mt-2">Join MusicPasal and start exploring.</p>
         </div>
 
         <?php if (!empty($errors)): ?>

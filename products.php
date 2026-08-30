@@ -77,7 +77,9 @@ require_once "includes/header.php";
 
     <!-- Empty state (hidden by default) -->
     <div id="emptyState" class="hidden bg-white rounded-xl shadow p-12 text-center animate-fade">
-        <p class="text-4xl mb-3">🔎</p>
+        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-3xl">
+            🎸
+        </div>
         <p class="text-gray-600 font-medium">No products match your search.</p>
         <p class="text-gray-400 text-sm mt-1">Try a different keyword or category.</p>
     </div>
@@ -92,53 +94,74 @@ require_once "includes/header.php";
     }
 
     .category-pill:hover {
-        border-color: #93c5fd;
-        color: #2563eb;
+        border-color: #bfdbfe;
+        color: #1d4ed8;
     }
 
     .category-pill.active-pill {
-        background: #2563eb;
-        border-color: #2563eb;
+        background: #1d4ed8;
+        border-color: #1d4ed8;
         color: #fff;
     }
 
     .product-card {
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid #eef2f7;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
     }
 
     .product-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 16px 32px rgba(37, 99, 235, 0.12), 0 6px 16px rgba(15, 23, 42, 0.08);
+        transform: translateY(-5px);
+        border-color: #bfdbfe;
+        box-shadow: 0 20px 36px rgba(37, 99, 235, 0.14), 0 6px 16px rgba(15, 23, 42, 0.06);
+    }
+
+    .product-card-image-wrap {
+        position: relative;
     }
 
     .product-image-actions {
         position: absolute;
-        right: 0.75rem;
-        bottom: 0.75rem;
+        right: 0.65rem;
+        bottom: 0.65rem;
         display: flex;
         gap: 0.5rem;
+        opacity: 0;
+        transform: translateY(6px);
+        transition: all 0.2s ease;
+    }
+
+    .product-card:hover .product-image-actions,
+    .product-card:focus-within .product-image-actions {
         opacity: 1;
         transform: translateY(0);
-        transition: all 0.2s ease;
+    }
+
+    @media (max-width: 767px) {
+        /* No hover on touch devices — keep the actions reachable. */
+        .product-image-actions {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .product-action-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 2.7rem;
-        height: 2.7rem;
+        width: 2.6rem;
+        height: 2.6rem;
         border-radius: 9999px;
         border: 1px solid rgba(255, 255, 255, 0.9);
-        background: rgba(255, 255, 255, 0.94);
+        background: rgba(255, 255, 255, 0.96);
         color: #1d4ed8;
         box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
         transition: all 0.2s ease;
     }
 
     .product-action-btn:hover {
-        background: #ffffff;
+        background: #1d4ed8;
+        color: #ffffff;
         transform: translateY(-1px);
     }
 
@@ -147,12 +170,17 @@ require_once "includes/header.php";
     }
 
     .product-action-btn svg {
-        width: 1.15rem;
-        height: 1.15rem;
+        width: 1.1rem;
+        height: 1.1rem;
     }
 
-    .product-action-btn.buy-now-btn {
-        color: #0f172a;
+    .product-action-btn.buy-now-btn:hover {
+        background: #0f172a;
+    }
+
+    .product-rating-star {
+        font-size: 0.7rem;
+        color: #f59e0b;
     }
 </style>
 
@@ -309,13 +337,21 @@ require_once "includes/header.php";
             const delay = Math.min(index * 50, 400);
 
             return `
-                <div class="product-card card-hover animate-pop bg-white rounded-xl overflow-hidden group" style="animation-delay:${delay}ms">
+                <div class="product-card animate-pop bg-white rounded-2xl overflow-hidden group" style="animation-delay:${delay}ms">
                     <a href="product-details.php?id=${product.id}" class="block p-3">
-                        <div class="relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+                        <div class="product-card-image-wrap aspect-square overflow-hidden rounded-xl bg-blue-50">
                             ${product.image
                                 ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}"
-                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">`
-                                : `<div class="w-full h-full flex items-center justify-center text-gray-400 text-sm">No Image</div>`
+                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 ${outOfStock ? "opacity-50" : ""}">`
+                                : `<div class="w-full h-full flex flex-col items-center justify-center gap-1 text-blue-300">
+                                        <span class="text-2xl">🎵</span>
+                                        <span class="text-xs font-semibold">No Image</span>
+                                   </div>`
+                            }
+
+                            ${index < 3 && !outOfStock
+                                ? `<span class="absolute left-2.5 top-2.5 z-10 rounded-full bg-blue-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-white">New</span>`
+                                : ""
                             }
 
                             <div class="product-image-actions">
@@ -336,22 +372,26 @@ require_once "includes/header.php";
                             </div>
 
                             ${outOfStock
-                                ? `<span class="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-semibold px-2 py-1 rounded-full">OUT OF STOCK</span>`
+                                ? `<span class="absolute top-2.5 right-2.5 bg-slate-800/90 text-white text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full">Out of stock</span>`
                                 : ""
                             }
                         </div>
                     </a>
 
-                    <div class="border-t border-slate-200 p-4">
+                    <div class="border-t border-slate-100 p-4">
                         ${product.category
-                            ? `<p class="text-xs text-gray-400 uppercase tracking-wide mb-1">${escapeHtml(product.category)}</p>`
+                            ? `<span class="inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-600 mb-2">${escapeHtml(product.category)}</span>`
                             : ""
                         }
                         <a href="product-details.php?id=${product.id}" class="block hover:text-blue-600 transition">
-                            <h3 class="font-medium text-gray-800 truncate">${escapeHtml(product.name)}</h3>
+                            <h3 class="font-semibold text-gray-800 truncate">${escapeHtml(product.name)}</h3>
                         </a>
-                        <div class="flex items-center justify-between mt-2">
-                            <span class="text-blue-600 font-bold">$${parseFloat(product.price).toFixed(2)}</span>
+                        <div class="flex items-center justify-between mt-2.5">
+                            <span class="text-blue-600 font-bold text-lg">$${parseFloat(product.price).toFixed(2)}</span>
+                            ${outOfStock
+                                ? `<span class="text-[11px] font-semibold text-red-500">Unavailable</span>`
+                                : `<span class="text-[11px] font-semibold text-emerald-600">In stock</span>`
+                            }
                         </div>
                     </div>
                 </div>

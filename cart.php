@@ -72,7 +72,9 @@ require_once "includes/header.php";
 
     <!-- EMPTY STATE -->
     <div id="emptyCart" class="hidden bg-white rounded-xl shadow p-16 text-center animate-fade">
-        <p class="text-5xl mb-4">🛒</p>
+        <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-4xl">
+            🎸
+        </div>
         <p class="text-gray-700 font-medium text-lg mb-2">Your cart is empty.</p>
         <p class="text-gray-400 text-sm mb-6">Looks like you haven't added anything yet.</p>
         <a href="products.php"

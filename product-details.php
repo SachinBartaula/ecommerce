@@ -41,12 +41,25 @@ require_once "includes/header.php";
 
 <style>
     .product-detail-shell {
-        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+        background: #fafafa;
     }
 
     .product-image-panel {
-        background: linear-gradient(135deg, #f8fafc 0%, #eef6ff 100%);
+        background: #eff6ff;
         box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+    }
+
+    /* Fixed-size image stage so every product photo — portrait, square,
+       or landscape — displays consistently without stretching or
+       randomly changing the height of the page. */
+    .product-image-stage {
+        height: 320px;
+    }
+
+    @media (min-width: 640px) {
+        .product-image-stage {
+            height: 420px;
+        }
     }
 
     .product-info-card {
@@ -64,14 +77,18 @@ require_once "includes/header.php";
     }
 
     .detail-cta-primary {
-        background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+        background: #1d4ed8;
         box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
+    }
+
+    .detail-cta-primary:hover {
+        background: #1e40af;
     }
 
     .detail-cta-secondary {
         background: #ffffff;
-        border: 1px solid #2563eb;
-        color: #1d4ed8;
+        border: 1px solid #1d4ed8;
+        color: #1e40af;
     }
 </style>
 
@@ -102,17 +119,20 @@ require_once "includes/header.php";
         <div class="grid gap-8 lg:grid-cols-2">
 
             <div class="product-image-panel reveal overflow-hidden rounded-3xl bg-white p-4">
-                <?php if (!empty($product["image"])): ?>
-                    <img
-                        id="productImage"
-                        src="<?php echo htmlspecialchars($product["image"]); ?>"
-                        alt="<?php echo htmlspecialchars($product["name"]); ?>"
-                        class="h-full min-h-[420px] w-full rounded-2xl object-cover transition-transform duration-500 hover:scale-[1.02]">
-                <?php else: ?>
-                    <div class="flex h-[420px] w-full items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-slate-400">
-                        No Image Available
-                    </div>
-                <?php endif; ?>
+                <div class="product-image-stage flex w-full items-center justify-center overflow-hidden rounded-2xl bg-white">
+                    <?php if (!empty($product["image"])): ?>
+                        <img
+                            id="productImage"
+                            src="<?php echo htmlspecialchars($product["image"]); ?>"
+                            alt="<?php echo htmlspecialchars($product["name"]); ?>"
+                            class="h-full w-full object-contain transition-transform duration-500 hover:scale-105">
+                    <?php else: ?>
+                        <div class="flex h-full w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-slate-400">
+                            <span class="text-4xl">🎵</span>
+                            <span class="text-sm font-medium">No Image Available</span>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
 
             <div class="product-info-card reveal rounded-3xl p-6 sm:p-8" style="transition-delay: 100ms;">
@@ -130,7 +150,7 @@ require_once "includes/header.php";
                     <p class="text-3xl font-extrabold text-blue-600">
                         $<?php echo number_format((float) $product["price"], 2); ?>
                     </p>
-                    <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Free shipping</span>
+                    <span class="rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-semibold text-cyan-700">Free shipping</span>
                 </div>
 
                 <div class="mb-6 rounded-2xl bg-slate-50 p-4">

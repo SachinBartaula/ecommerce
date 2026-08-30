@@ -11,15 +11,15 @@ require_once "../includes/admin-header.php";
         .admin-form-input:focus { outline: none; border-color: #3b82f6; background: #ffffff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12); }
         .admin-form-select { border: 1px solid #dbe3ee; background: #f8fafc; border-radius: 0.9rem; padding: 0.8rem 1rem; transition: all 0.2s ease; }
         .admin-form-select:focus { outline: none; border-color: #3b82f6; background: #ffffff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12); }
-        .admin-button-primary { background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%); color: white; border-radius: 0.9rem; padding: 0.8rem 1.2rem; font-weight: 700; transition: all 0.2s ease; }
-        .admin-button-primary:hover { background: linear-gradient(180deg, #1d4ed8 0%, #1e40af 100%); }
+        .admin-button-primary { background: #2563eb; color: white; border-radius: 0.9rem; padding: 0.8rem 1.2rem; font-weight: 700; transition: all 0.2s ease; }
+        .admin-button-primary:hover { background: #1d4ed8; }
         .admin-button-secondary { border: 1px solid #dfe7f1; background: #ffffff; color: #0f172a; border-radius: 0.9rem; padding: 0.8rem 1.2rem; font-weight: 700; transition: all 0.2s ease; }
         .admin-button-secondary:hover { background: #f8fafc; }
         .admin-status-badge { display: inline-flex; align-items: center; border-radius: 9999px; padding: 0.32rem 0.72rem; font-size: 0.72rem; font-weight: 700; }
         .admin-status-good { background: #ecfdf5; color: #047857; }
         .admin-status-warning { background: #fff7ed; color: #c2410c; }
         .admin-status-neutral { background: #eef2ff; color: #4338ca; }
-        .product-card { border: 1px solid #e2e8f0; border-radius: 1rem; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); }
+        .product-card { border: 1px solid #e2e8f0; border-radius: 1rem; background: #ffffff; }
     </style>
 
     <div class="max-w-6xl mx-auto px-6 py-10">

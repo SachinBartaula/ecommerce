@@ -8,10 +8,10 @@ require_once "../includes/admin-header.php";
     .orders-status-pill { border-radius: 999px; padding: .32rem .7rem; font-size: .72rem; font-weight: 700; text-transform: capitalize; }
     .status-pending { background: #fff7ed; color: #c2410c; }
     .status-confirmed { background: #eff6ff; color: #1d4ed8; }
-    .status-shipped { background: #f5f3ff; color: #6d28d9; }
+    .status-shipped { background: #f5f3ff; color: #1e40af; }
     .status-delivered { background: #ecfdf5; color: #047857; }
     .status-cancelled { background: #fef2f2; color: #b91c1c; }
-    .order-status-select { appearance: none; border: 1px solid #dbe3ee; border-radius: .8rem; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); padding: .7rem .85rem; font-size: .86rem; color: #0f172a; font-weight: 600; min-width: 7.5rem; }
+    .order-status-select { appearance: none; border: 1px solid #dbe3ee; border-radius: .8rem; background: #f8fafc; padding: .7rem .85rem; font-size: .86rem; color: #0f172a; font-weight: 600; min-width: 7.5rem; }
     .order-status-select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, .12); }
     .payment-status-pill { border-radius: 999px; padding: .2rem .55rem; font-size: .68rem; font-weight: 700; text-transform: capitalize; }
     .payment-status-pending { background: #fff7ed; color: #c2410c; }

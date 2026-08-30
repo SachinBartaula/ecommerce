@@ -387,6 +387,7 @@ require_once "includes/header.php";
                         <label class="flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer hover:border-blue-400 transition">
                             <input type="radio" name="payment_method" value="cod"
                                 <?php echo $paymentMethod === 'cod' ? 'checked' : ''; ?>>
+                            <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-blue-50 text-lg">💵</span>
                             <div>
                                 <p class="font-medium text-gray-800">Cash on Delivery</p>
                                 <p class="text-xs text-gray-500">Pay when your order arrives</p>
@@ -397,6 +398,7 @@ require_once "includes/header.php";
                         <label class="flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer hover:border-blue-400 transition">
                             <input type="radio" name="payment_method" value="esewa"
                                 <?php echo $paymentMethod === 'esewa' ? 'checked' : ''; ?>>
+                            <span class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-blue-50 text-lg">📱</span>
                             <div>
                                 <p class="font-medium text-gray-800">eSewa</p>
                                 <p class="text-xs text-gray-500">Popular Nepal online payment</p>

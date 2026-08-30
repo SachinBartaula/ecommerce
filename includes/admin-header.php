@@ -34,24 +34,30 @@ $adminTitle = $pageTitle ?? "Admin";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($adminTitle); ?> - ShopEase Admin</title>
+    <title><?php echo htmlspecialchars($adminTitle); ?> - MusicPasal Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Fredoka:wght@400;500;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
     <style>
-        .admin-header { background: #172033; }
-        .admin-nav-link { color: #aeb9ca; transition: color .2s ease, background-color .2s ease; }
-        .admin-nav-link:hover, .admin-nav-link.active { color: #fff; background: rgba(255, 255, 255, .1); }
+        .admin-header { background: #1f2937; }
+        .admin-nav-link { color: #d1d5db; transition: color .2s ease, background-color .2s ease; }
+        .admin-nav-link:hover, .admin-nav-link.active { color: #fff; background: #2563eb; }
         .admin-menu { max-height: 0; overflow: hidden; transition: max-height .25s ease; }
         .admin-menu.open { max-height: 15rem; }
+        .store-name { font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: -0.025em; }
+        .music-logo { font-family: 'Fredoka One', sans-serif; font-size: 0.875rem; font-weight: 700; letter-spacing: 0.025em; }
         @media (prefers-reduced-motion: reduce) { .admin-menu { transition: none; } }
     </style>
 </head>
 
 <body class="min-h-screen bg-slate-100 text-slate-900">
+    <?php if (empty($hideAdminNav)): ?>
     <header class="admin-header sticky top-0 z-50 border-b border-white/10 text-white shadow-lg">
         <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
             <a href="index.php" class="flex items-center gap-3 text-lg font-bold tracking-tight">
-                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-sm">SE</span>
-                ShopEase <span class="hidden text-sm font-medium text-slate-400 sm:inline">Admin</span>
+                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-lg">🎵</span>
+                <span class="store-name">MusicPasal</span> <span class="hidden text-sm font-medium text-slate-400 sm:inline">Admin</span>
             </a>
 
             <nav class="hidden items-center gap-1 md:flex">
@@ -93,3 +99,4 @@ $adminTitle = $pageTitle ?? "Admin";
             });
         }
     </script>
+    <?php endif; ?>

@@ -5,8 +5,7 @@
     =========================================== -->
     <footer class="bg-white border-t mt-12">
         <div class="max-w-6xl mx-auto px-6 py-6 text-sm text-gray-500 flex items-center justify-between">
-            <span>&copy; <?php echo date("Y"); ?> ShopEase. All rights reserved.</span>
-            <span>Built with PHP &amp; MySQL</span>
+            <span>&copy; <?php echo date("Y"); ?>All rights reserved.</span>
         </div>
     </footer>
 

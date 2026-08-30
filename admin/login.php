@@ -65,6 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 $pageTitle = "Admin Login";
 $requireAdmin = false;
+$hideAdminNav = true;
 require_once __DIR__ . "/../includes/admin-header.php";
 ?>
 
@@ -78,12 +79,18 @@ require_once __DIR__ . "/../includes/admin-header.php";
     @media (prefers-reduced-motion: reduce) { .admin-login-card { animation: none; } }
 </style>
 
-<main class="admin-login-page min-h-[calc(100vh-5rem)] flex items-center justify-center px-6 py-12">
+<main class="admin-login-page min-h-screen flex flex-col items-center justify-center px-6 py-12">
+
+    <a href="../index.php" class="mb-6 flex items-center gap-2 text-lg font-bold text-slate-800">
+        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-lg">🎵</span>
+        <span class="store-name">MusicPasal</span>
+    </a>
+
     <section class="admin-login-card w-full max-w-md rounded-xl bg-white p-8">
         <div class="mb-7">
             <p class="text-xs font-semibold uppercase tracking-[.18em] text-blue-600">Private workspace</p>
             <h1 class="mt-2 text-3xl font-bold text-slate-900">Admin sign in</h1>
-            <p class="mt-2 text-sm text-slate-500">Access your ShopEase control room.</p>
+            <p class="mt-2 text-sm text-slate-500">Access your MusicPasal control room.</p>
         </div>
 
         <?php if ($error !== ""): ?>

@@ -37,9 +37,12 @@ $basePath = rtrim($basePath, "/");
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title><?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) . " - ShopEase" : "ShopEase"; ?></title>
+    <title><?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) . " - MusicPasal" : "MusicPasal"; ?></title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Fredoka:wght@400;500;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
 
     <style>
         /* ============ ANIMATION UTILITIES ============ */
@@ -89,7 +92,7 @@ $basePath = rtrim($basePath, "/");
         }
 
         .shimmer-badge {
-            background: linear-gradient(90deg, #2563eb 0%, #60a5fa 50%, #2563eb 100%);
+            background: #2563eb;
             background-size: 800px 100%;
             animation: shimmer 2.5s linear infinite;
         }
@@ -141,7 +144,7 @@ $basePath = rtrim($basePath, "/");
         .public-page {
             position: relative;
             overflow-x: hidden;
-            background: #f8fafc;
+            background: #fafafa;
         }
 
         .public-page::before,
@@ -151,7 +154,7 @@ $basePath = rtrim($basePath, "/");
             z-index: -1;
             width: 15rem;
             height: 15rem;
-            border: 1.5rem solid rgba(37, 99, 235, .045);
+            border: 1.5rem solid rgba(37, 99, 235, .08);
             border-radius: 999px;
             pointer-events: none;
             animation: siteFloat 12s ease-in-out infinite;
@@ -165,7 +168,7 @@ $basePath = rtrim($basePath, "/");
         .public-page::after {
             right: -7rem;
             bottom: 10%;
-            border-color: rgba(14, 165, 233, .055);
+            border-color: rgba(6, 182, 212, .08);
             animation-delay: -6s;
         }
 
@@ -173,6 +176,17 @@ $basePath = rtrim($basePath, "/");
             position: relative;
             z-index: 1;
             animation: siteEnter .45s ease-out both;
+        }
+
+        .music-brand {
+            font-family: 'Fredoka One', sans-serif;
+            letter-spacing: -0.5px;
+        }
+
+        .store-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.025em;
         }
 
         .public-page main .bg-white,
@@ -216,9 +230,9 @@ $basePath = rtrim($basePath, "/");
     <header id="site-nav" class="bg-white/90 backdrop-blur sticky top-0 z-50 shadow-sm">
         <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
 
-            <a href="<?php echo $basePath; ?>/index.php" class="text-xl font-bold text-gray-800 flex items-center gap-1 group">
-                <span class="inline-block transition-transform duration-300 group-hover:rotate-12">🛍️</span>
-                ShopEase
+            <a href="<?php echo $basePath; ?>/index.php" class="text-xl font-bold text-blue-700 flex items-center gap-2 group">
+                <span class="inline-block text-2xl transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-12">🎵</span>
+                <span class="store-name">MusicPasal</span>
             </a>
 
             <!-- Desktop nav -->
@@ -259,7 +273,7 @@ $basePath = rtrim($basePath, "/");
                 </a>
 
                     <a href="<?php echo $basePath; ?>/logout.php?role=customer"
-                        class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-transform duration-200 hover:scale-105">
+                        class="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-transform duration-200 hover:scale-105">
                         Logout
                     </a>
 
