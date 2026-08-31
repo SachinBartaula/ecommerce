@@ -4,8 +4,32 @@
          FOOTER
     =========================================== -->
     <footer class="bg-white border-t mt-12">
-        <div class="max-w-6xl mx-auto px-6 py-6 text-sm text-gray-500 flex items-center justify-between">
-            <span>&copy; <?php echo date("Y"); ?> All rights reserved.</span>
+        <div class="max-w-6xl mx-auto px-6 py-8">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+
+                <span class="text-sm text-gray-500 text-center sm:text-left">
+                    &copy; <?php echo date("Y"); ?> MusicPasal. All rights reserved.
+                </span>
+
+                <nav class="flex items-center gap-5 text-sm font-medium text-gray-500">
+                    <a
+                        href="<?php echo $basePath; ?>/about.php"
+                        class="hover:text-blue-600 transition-colors duration-200"
+                    >
+                        About Us
+                    </a>
+
+                    <span class="text-gray-300">|</span>
+
+                    <a
+                        href="<?php echo $basePath; ?>/settings.php"
+                        class="hover:text-blue-600 transition-colors duration-200"
+                    >
+                        Settings
+                    </a>
+                </nav>
+
+            </div>
         </div>
     </footer>
 

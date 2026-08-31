@@ -12,10 +12,21 @@ $sql = "SELECT
             products.price,
             products.image,
             products.stock,
-            categories.name AS category
+            categories.name AS category,
+            COALESCE(ROUND(AVG(reviews.rating), 1), 0) AS average_rating,
+            COUNT(reviews.id) AS review_count
         FROM products
         LEFT JOIN categories
-        ON products.category_id = categories.id
+            ON products.category_id = categories.id
+        LEFT JOIN reviews
+            ON reviews.product_id = products.id
+        GROUP BY
+            products.id,
+            products.name,
+            products.price,
+            products.image,
+            products.stock,
+            categories.name
         ORDER BY products.id DESC
         LIMIT 8";
 
@@ -343,6 +354,21 @@ $heroSlides = [
                         <h3 class="truncate text-base font-bold text-slate-800">
                             <?php echo htmlspecialchars($product['name']); ?>
                         </h3>
+
+                        <div class="mt-2 flex items-center gap-2" aria-label="<?php echo number_format((float) $product['average_rating'], 1); ?> out of 5 stars, <?php echo (int) $product['review_count']; ?> reviews">
+                            <span class="text-sm tracking-wide text-amber-400">
+                                <?php
+                                $cardRating = (int) round((float) $product['average_rating']);
+                                echo str_repeat('★', $cardRating) . str_repeat('☆', 5 - $cardRating);
+                                ?>
+                            </span>
+                            <span class="text-xs font-semibold text-slate-500">
+                                <?php echo number_format((float) $product['average_rating'], 1); ?>
+                            </span>
+                            <span class="text-xs text-slate-400">
+                                (<?php echo (int) $product['review_count']; ?>)
+                            </span>
+                        </div>
 
                         <div class="mt-3 flex items-center justify-between gap-2">
                             <span class="text-lg font-black text-blue-700">

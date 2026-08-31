@@ -120,10 +120,22 @@ if ($requestMethod === "GET") {
                 products.price,
                 products.stock,
                 products.image,
-                categories.name AS category
+                categories.name AS category,
+                COALESCE(ROUND(AVG(reviews.rating), 1), 0) AS average_rating,
+                COUNT(reviews.id) AS review_count
             FROM products
             LEFT JOIN categories
-            ON products.category_id = categories.id
+                ON products.category_id = categories.id
+            LEFT JOIN reviews
+                ON reviews.product_id = products.id
+            GROUP BY
+                products.id,
+                products.name,
+                products.description,
+                products.price,
+                products.stock,
+                products.image,
+                categories.name
             ORDER BY products.id DESC";
 
     $result = mysqli_query($conn, $sql);

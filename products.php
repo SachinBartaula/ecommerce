@@ -319,6 +319,12 @@ require_once "includes/header.php";
         return list;
     }
 
+    function renderCardStars(rating) {
+        const value = Math.max(0, Math.min(5, Number(rating) || 0));
+        const rounded = Math.round(value);
+        return Array.from({ length: 5 }, (_, index) => index < rounded ? "★" : "☆").join("");
+    }
+
     function renderProducts() {
         const list = getFilteredProducts();
 
@@ -386,6 +392,11 @@ require_once "includes/header.php";
                         <a href="product-details.php?id=${product.id}" class="block hover:text-blue-600 transition">
                             <h3 class="font-semibold text-gray-800 truncate">${escapeHtml(product.name)}</h3>
                         </a>
+                        <div class="mt-2 flex items-center gap-2" aria-label="${Number(product.average_rating || 0).toFixed(1)} out of 5 stars, ${Number(product.review_count || 0)} reviews">
+                            <span class="text-sm tracking-wide text-amber-400">${renderCardStars(product.average_rating)}</span>
+                            <span class="text-xs font-semibold text-slate-500">${Number(product.average_rating || 0) > 0 ? Number(product.average_rating).toFixed(1) : "0.0"}</span>
+                            <span class="text-xs text-slate-400">(${Number(product.review_count || 0)})</span>
+                        </div>
                         <div class="flex items-center justify-between mt-2.5">
                             <span class="text-blue-600 font-bold text-lg">$${parseFloat(product.price).toFixed(2)}</span>
                             ${outOfStock

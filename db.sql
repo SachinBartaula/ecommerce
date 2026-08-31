@@ -140,6 +140,29 @@ CREATE TABLE shipping_addresses (
         REFERENCES users(id)
         ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    rating TINYINT NOT NULL,
+    review TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT chk_review_rating
+        CHECK (rating BETWEEN 1 AND 5),
+
+    UNIQUE KEY unique_user_product_review (user_id, product_id),
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (product_id)
+        REFERENCES products(id)
+        ON DELETE CASCADE
+);
 
 -- DEFAULT ADMIN (change this password after first login)
 INSERT INTO users (name, email, password, role)

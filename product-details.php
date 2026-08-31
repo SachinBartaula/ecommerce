@@ -90,6 +90,41 @@ require_once "includes/header.php";
         border: 1px solid #1d4ed8;
         color: #1e40af;
     }
+
+    .reviews-section {
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    .review-star {
+        color: #f59e0b;
+    }
+
+    .review-star-button {
+        transition: transform .15s ease, color .15s ease;
+    }
+
+    .review-star-button:hover {
+        transform: scale(1.12);
+    }
+
+    .review-star-button.active {
+        color: #f59e0b;
+    }
+
+    .review-input {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    .review-input:focus {
+        background: #fff;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+        outline: none;
+    }
 </style>
 
 <section class="product-detail-shell mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -218,9 +253,389 @@ require_once "includes/header.php";
             </div>
         </div>
 
+        <!-- Product Reviews -->
+        <section id="reviewsSection" class="reviews-section mt-10 rounded-3xl p-6 sm:p-8">
+            <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">Customer feedback</p>
+                    <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Reviews & Ratings</h2>
+                    <p class="mt-2 text-sm text-slate-500">See what customers think about this instrument.</p>
+                </div>
+
+                <div id="reviewSummary" class="rounded-2xl bg-slate-50 px-6 py-4 text-center lg:min-w-[210px]">
+                    <div id="averageRating" class="text-3xl font-extrabold text-slate-900">0.0</div>
+                    <div id="averageStars" class="mt-1 text-xl tracking-wide" aria-label="Average rating">★★★★★</div>
+                    <div id="reviewCount" class="mt-1 text-xs font-medium text-slate-500">0 reviews</div>
+                </div>
+            </div>
+
+            <?php if ($isLoggedIn): ?>
+                <div id="reviewFormWrap" class="mt-8 hidden rounded-2xl border border-blue-100 bg-blue-50/50 p-5 sm:p-6">
+                    <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <h3 id="reviewFormTitle" class="text-lg font-bold text-slate-900">Write a review</h3>
+                            <p id="reviewFormHint" class="text-sm text-slate-500">Your review helps other musicians choose the right instrument.</p>
+                        </div>
+                        <span class="text-xs font-medium text-slate-500">Verified purchase required</span>
+                    </div>
+
+                    <form id="reviewForm" class="mt-5" novalidate>
+                        <input type="hidden" id="reviewProductId" value="<?php echo (int) $product['id']; ?>">
+                        <input type="hidden" id="reviewId" value="">
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700">Your rating</label>
+                            <div id="ratingStars" class="mt-2 flex items-center gap-1" role="radiogroup" aria-label="Choose a rating from 1 to 5 stars">
+                                <button type="button" class="review-star-button text-3xl leading-none text-slate-300" data-rating="1" aria-label="1 star">★</button>
+                                <button type="button" class="review-star-button text-3xl leading-none text-slate-300" data-rating="2" aria-label="2 stars">★</button>
+                                <button type="button" class="review-star-button text-3xl leading-none text-slate-300" data-rating="3" aria-label="3 stars">★</button>
+                                <button type="button" class="review-star-button text-3xl leading-none text-slate-300" data-rating="4" aria-label="4 stars">★</button>
+                                <button type="button" class="review-star-button text-3xl leading-none text-slate-300" data-rating="5" aria-label="5 stars">★</button>
+                            </div>
+                            <p id="ratingError" class="mt-1 hidden text-sm text-red-600"></p>
+                        </div>
+
+                        <div class="mt-5">
+                            <div class="flex items-center justify-between gap-3">
+                                <label for="reviewText" class="block text-sm font-semibold text-slate-700">Your review</label>
+                                <span id="reviewCounter" class="text-xs text-slate-400">0/1000</span>
+                            </div>
+                            <textarea id="reviewText" rows="5" maxlength="1000" class="review-input mt-2 w-full resize-y rounded-xl border px-4 py-3 text-sm text-slate-800" placeholder="Tell other musicians about the sound, quality, build, or your experience..."></textarea>
+                            <p id="reviewError" class="mt-1 hidden text-sm text-red-600"></p>
+                        </div>
+
+                        <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+                            <button id="submitReviewBtn" type="submit" class="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
+                                Submit Review
+                            </button>
+                            <button id="cancelReviewBtn" type="button" class="hidden rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                                Cancel Edit
+                            </button>
+                            <p id="reviewFeedback" class="hidden text-sm"></p>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="reviewLoginMessage" class="mt-8 hidden rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"></div>
+            <?php else: ?>
+                <div class="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+                    <a href="login.php" class="font-semibold text-blue-600 hover:underline">Log in</a> to write a review after purchasing this product.
+                </div>
+            <?php endif; ?>
+
+            <div id="reviewsList" class="mt-8 space-y-4">
+                <div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">Loading reviews...</div>
+            </div>
+        </section>
+
     <?php endif; ?>
 
 </section>
+
+<?php if ($product): ?>
+<script>
+(function () {
+    const productId = <?php echo (int) $product['id']; ?>;
+    const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+    const apiUrl = "api/reviews.php";
+
+    const averageRating = document.getElementById("averageRating");
+    const averageStars = document.getElementById("averageStars");
+    const reviewCount = document.getElementById("reviewCount");
+    const reviewsList = document.getElementById("reviewsList");
+    const formWrap = document.getElementById("reviewFormWrap");
+    const reviewForm = document.getElementById("reviewForm");
+    const reviewId = document.getElementById("reviewId");
+    const reviewText = document.getElementById("reviewText");
+    const reviewCounter = document.getElementById("reviewCounter");
+    const submitBtn = document.getElementById("submitReviewBtn");
+    const cancelBtn = document.getElementById("cancelReviewBtn");
+    const reviewFormTitle = document.getElementById("reviewFormTitle");
+    const reviewFeedback = document.getElementById("reviewFeedback");
+    const ratingError = document.getElementById("ratingError");
+    const reviewError = document.getElementById("reviewError");
+    const loginMessage = document.getElementById("reviewLoginMessage");
+    const starButtons = document.querySelectorAll(".review-star-button");
+    let selectedRating = 0;
+
+    function escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value ?? "";
+        return div.innerHTML;
+    }
+
+    function stars(rating) {
+        const rounded = Math.round(Number(rating) || 0);
+        return Array.from({ length: 5 }, (_, i) => i < rounded ? "★" : "☆").join("");
+    }
+
+    function setStars(rating) {
+        selectedRating = Number(rating) || 0;
+        starButtons.forEach((button) => {
+            const value = Number(button.dataset.rating);
+            button.classList.toggle("active", value <= selectedRating);
+            button.classList.toggle("text-slate-300", value > selectedRating);
+        });
+    }
+
+    function showFieldError(element, message) {
+        if (!element) return;
+        element.textContent = message;
+        element.classList.remove("hidden");
+    }
+
+    function clearErrors() {
+        [ratingError, reviewError].forEach((element) => {
+            if (element) {
+                element.textContent = "";
+                element.classList.add("hidden");
+            }
+        });
+        if (reviewFeedback) {
+            reviewFeedback.textContent = "";
+            reviewFeedback.classList.add("hidden");
+        }
+    }
+
+    function updateCounter() {
+        if (reviewCounter && reviewText) {
+            reviewCounter.textContent = `${reviewText.value.length}/1000`;
+        }
+    }
+
+    function renderSummary(data) {
+        const avg = Number(data.average_rating || 0).toFixed(1);
+        const count = Number(data.review_count || 0);
+        if (averageRating) averageRating.textContent = avg;
+        if (averageStars) averageStars.textContent = stars(Number(data.average_rating || 0));
+        if (reviewCount) reviewCount.textContent = `${count} review${count === 1 ? "" : "s"}`;
+    }
+
+    function renderReviews(data) {
+        if (!reviewsList) return;
+        const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+
+        if (!reviews.length) {
+            reviewsList.innerHTML = `
+                <div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center">
+                    <div class="text-3xl">⭐</div>
+                    <p class="mt-2 font-semibold text-slate-700">No reviews yet</p>
+                    <p class="mt-1 text-sm text-slate-500">Be the first verified customer to review this instrument.</p>
+                </div>`;
+            return;
+        }
+
+        reviewsList.innerHTML = reviews.map((item) => `
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h3 class="font-bold text-slate-900">${escapeHtml(item.user_name)}</h3>
+                            ${item.verified_purchase ? '<span class="rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">✓ Verified Purchase</span>' : ''}
+                        </div>
+                        <div class="mt-1 flex flex-wrap items-center gap-2">
+                            <span class="review-star text-lg tracking-wide">${stars(item.rating)}</span>
+                            <span class="text-xs text-slate-400">${escapeHtml(item.created_at)}${item.updated ? " · edited" : ""}</span>
+                        </div>
+                    </div>
+                    ${item.is_owner ? `
+                        <div class="flex shrink-0 gap-2">
+                            <button type="button" data-edit-review="${item.id}" class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Edit</button>
+                            <button type="button" data-delete-review="${item.id}" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50">Delete</button>
+                        </div>` : ""}
+                </div>
+                <p class="mt-4 whitespace-pre-line break-words text-sm leading-7 text-slate-600">${escapeHtml(item.review)}</p>
+            </article>
+        `).join("");
+
+        reviewsList.querySelectorAll("[data-edit-review]").forEach((button) => {
+            button.addEventListener("click", () => {
+                const item = reviews.find((review) => Number(review.id) === Number(button.dataset.editReview));
+                if (item) startEdit(item);
+            });
+        });
+
+        reviewsList.querySelectorAll("[data-delete-review]").forEach((button) => {
+            button.addEventListener("click", () => deleteReview(button.dataset.deleteReview));
+        });
+    }
+
+    function updateForm(data) {
+        if (!isLoggedIn || !formWrap) return;
+
+        const myReview = data.my_review;
+        if (myReview) {
+            formWrap.classList.add("hidden");
+            return;
+        }
+
+        if (data.can_review) {
+            formWrap.classList.remove("hidden");
+            if (!reviewId.value) {
+                reviewFormTitle.textContent = "Write a review";
+                submitBtn.textContent = "Submit Review";
+                cancelBtn.classList.add("hidden");
+            }
+            return;
+        }
+
+        formWrap.classList.add("hidden");
+        if (loginMessage) {
+            loginMessage.textContent = "You can write a review after your order for this product has been delivered.";
+            loginMessage.classList.remove("hidden");
+        }
+    }
+
+    function loadReviews() {
+        fetch(`${apiUrl}?product_id=${encodeURIComponent(productId)}`, { credentials: "same-origin" })
+            .then((response) => response.json())
+            .then((result) => {
+                if (!result.success) throw new Error(result.message || "Unable to load reviews.");
+                renderSummary(result.data);
+                renderReviews(result.data);
+                updateForm(result.data);
+            })
+            .catch(() => {
+                if (reviewsList) {
+                    reviewsList.innerHTML = `<div class="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">Unable to load reviews right now. Please refresh the page.</div>`;
+                }
+            });
+    }
+
+    function startEdit(item) {
+        if (!formWrap || !reviewForm) return;
+        formWrap.classList.remove("hidden");
+        reviewFormTitle.textContent = "Edit your review";
+        submitBtn.textContent = "Update Review";
+        cancelBtn.classList.remove("hidden");
+        reviewId.value = item.id;
+        reviewText.value = item.review || "";
+        setStars(item.rating);
+        clearErrors();
+        updateCounter();
+        formWrap.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => reviewText.focus(), 250);
+    }
+
+    function resetForm() {
+        if (!reviewForm) return;
+        reviewForm.reset();
+        reviewId.value = "";
+        setStars(0);
+        reviewFormTitle.textContent = "Write a review";
+        submitBtn.textContent = "Submit Review";
+        cancelBtn.classList.add("hidden");
+        updateCounter();
+        clearErrors();
+    }
+
+    function deleteReview(id) {
+        const formData = new FormData();
+        formData.append("action", "delete");
+        formData.append("product_id", productId);
+        formData.append("review_id", id);
+
+        fetch(apiUrl, { method: "POST", body: formData, credentials: "same-origin" })
+            .then((response) => response.json())
+            .then((result) => {
+                if (!result.success) throw new Error(result.message || "Unable to delete review.");
+                renderSummary(result.data);
+                renderReviews(result.data);
+                updateForm(result.data);
+                resetForm();
+            })
+            .catch((error) => {
+                if (reviewFeedback) {
+                    reviewFeedback.textContent = error.message;
+                    reviewFeedback.className = "text-sm text-red-600";
+                    reviewFeedback.classList.remove("hidden");
+                }
+            });
+    }
+
+    starButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            setStars(button.dataset.rating);
+            if (ratingError) ratingError.classList.add("hidden");
+        });
+    });
+
+    if (reviewText) reviewText.addEventListener("input", updateCounter);
+    if (cancelBtn) cancelBtn.addEventListener("click", resetForm);
+
+    if (reviewForm) {
+        reviewForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            clearErrors();
+
+            let valid = true;
+            const text = reviewText.value.trim();
+
+            if (selectedRating < 1 || selectedRating > 5) {
+                showFieldError(ratingError, "Please select a rating from 1 to 5 stars.");
+                valid = false;
+            }
+
+            if (text.length < 10) {
+                showFieldError(reviewError, "Your review should be at least 10 characters.");
+                valid = false;
+            } else if (text.length > 1000) {
+                showFieldError(reviewError, "Your review cannot exceed 1000 characters.");
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            const isEditing = Boolean(reviewId.value);
+            const formData = new FormData();
+            formData.append("action", isEditing ? "update" : "create");
+            formData.append("product_id", productId);
+            formData.append("rating", selectedRating);
+            formData.append("review", text);
+            if (isEditing) formData.append("review_id", reviewId.value);
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = isEditing ? "Updating..." : "Submitting...";
+
+            fetch(apiUrl, { method: "POST", body: formData, credentials: "same-origin" })
+                .then((response) => response.json())
+                .then((result) => {
+                    if (!result.success) {
+                        if (result.field === "review") showFieldError(reviewError, result.message);
+                        else if (result.message && result.message.toLowerCase().includes("rating")) showFieldError(ratingError, result.message);
+                        else throw new Error(result.message || "Unable to save review.");
+                        return;
+                    }
+
+                    renderSummary(result.data);
+                    renderReviews(result.data);
+                    resetForm();
+                    updateForm(result.data);
+
+                    if (reviewFeedback) {
+                        reviewFeedback.textContent = result.message;
+                        reviewFeedback.className = "text-sm text-emerald-600";
+                        reviewFeedback.classList.remove("hidden");
+                    }
+                })
+                .catch((error) => {
+                    if (reviewFeedback) {
+                        reviewFeedback.textContent = error.message || "Something went wrong. Please try again.";
+                        reviewFeedback.className = "text-sm text-red-600";
+                        reviewFeedback.classList.remove("hidden");
+                    }
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = reviewId.value ? "Update Review" : "Submit Review";
+                });
+        });
+    }
+
+    loadReviews();
+})();
+</script>
+<?php endif; ?>
 
 <?php if ($product && (int) $product["stock"] > 0): ?>
 <script>
