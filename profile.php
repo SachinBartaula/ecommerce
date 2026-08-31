@@ -165,11 +165,18 @@ $pageTitle = "Profile";
 require_once "includes/header.php";
 ?>
 
-<main class="min-h-[calc(100vh-5rem)] bg-slate-100 py-10">
+<main class="min-h-[calc(100vh-5rem)] py-10">
     <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div class="mb-8">
-            <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">Account</p>
-            <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">My Profile</h1>
+        <div class="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">Account</p>
+                <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">My Profile</h1>
+            </div>
+
+            <button type="button" id="open-order-history-btn"
+                class="rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700">
+                See Order History
+            </button>
         </div>
 
         <?php if ($successMessage !== ""): ?>
@@ -264,7 +271,7 @@ require_once "includes/header.php";
 
                     <div>
                         <label class="mb-1 block text-sm font-medium text-slate-700">Street Address</label>
-                        <textarea name="address" required rows="3" class="field-input w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Street address, ward, area"></textarea>
+                        <textarea name="address" required rows="3" class="field-input w-full resize-none rounded-lg border border-slate-300 bg-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Street address, ward, area"></textarea>
                         <p class="field-error mt-1 hidden text-xs text-red-600"></p>
                     </div>
 
@@ -325,8 +332,246 @@ require_once "includes/header.php";
                 </div>
             </section>
         </div>
+
     </div>
 </main>
+
+<!-- ==========================================
+     ORDER HISTORY MODAL
+=========================================== -->
+<div id="order-history-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div id="order-history-backdrop" class="absolute inset-0 bg-slate-900/80"></div>
+
+    <div class="relative flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+
+        <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+            <h3 class="text-lg font-bold text-slate-900">Order History</h3>
+            <button type="button" id="close-order-history-btn" class="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label="Close">
+                &#10005;
+            </button>
+        </div>
+
+        <div id="order-history-body" class="min-w-0 flex-1 overflow-y-auto p-6">
+            <!-- Populated by JS on first open -->
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const openBtn = document.getElementById("open-order-history-btn");
+        const closeBtn = document.getElementById("close-order-history-btn");
+        const modal = document.getElementById("order-history-modal");
+        const backdrop = document.getElementById("order-history-backdrop");
+        const body = document.getElementById("order-history-body");
+
+        if (!openBtn || !modal || !body) return;
+
+        // Safety net: clear any leftover inert attributes in case a prior
+        // page load got stuck mid-close (e.g. during development/testing).
+        document.querySelectorAll("[inert]").forEach((el) => el.removeAttribute("inert"));
+        document.body.style.overflow = "";
+        document.body.style.paddingRight = "";
+
+        let loaded = false;
+        let loading = false;
+
+        const statusStyles = {
+            pending:    "bg-amber-100 text-amber-700",
+            processing: "bg-blue-100 text-blue-700",
+            shipped:    "bg-cyan-100 text-cyan-700",
+            delivered:  "bg-emerald-100 text-emerald-700",
+            cancelled:  "bg-red-100 text-red-700",
+        };
+
+        function escapeHtml(str) {
+            const div = document.createElement("div");
+            div.textContent = str ?? "";
+            return div.innerHTML;
+        }
+
+        function renderLoading() {
+            body.innerHTML = `
+                <div class="flex flex-col items-center justify-center gap-3 py-14 text-slate-400">
+                    <svg class="h-8 w-8 animate-spin text-blue-600" viewBox="0 0 24 24" fill="none">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <p class="text-sm">Loading your orders&hellip;</p>
+                </div>`;
+        }
+
+        function renderError(message) {
+            body.innerHTML = `
+                <p class="rounded-xl border border-red-200 bg-red-50 px-4 py-8 text-center text-sm text-red-600">
+                    ${escapeHtml(message || "Couldn't load your order history. Please try again.")}
+                </p>`;
+        }
+
+        function renderEmpty() {
+            body.innerHTML = `
+                <p class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
+                    You haven't placed any orders yet.
+                    <a href="products.php" class="font-semibold text-blue-600 hover:underline">Start shopping &rarr;</a>
+                </p>`;
+        }
+
+        function renderOrders(orders) {
+            body.innerHTML = "";
+
+            const wrap = document.createElement("div");
+            wrap.className = "space-y-4";
+
+            orders.forEach((order) => {
+                const statusClass = statusStyles[order.status] || "bg-slate-100 text-slate-700";
+                const statusLabel = order.status.charAt(0).toUpperCase() + order.status.slice(1);
+
+                const details = document.createElement("details");
+                details.className = "min-w-0 rounded-xl border border-slate-200 bg-slate-50 open:bg-white";
+
+                const itemsHtml = order.items.length === 0
+                    ? `<p class="text-sm text-slate-500">No item details available for this order.</p>`
+                    : order.items.map((item) => `
+                        <div class="flex items-center gap-4">
+                            <div class="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-blue-50">
+                                ${item.image
+                                    ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="h-full w-full object-cover">`
+                                    : `<div class="flex h-full w-full items-center justify-center text-[10px] font-bold text-blue-300">No image</div>`}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-semibold text-slate-800">${escapeHtml(item.name)}</p>
+                                <p class="text-xs text-slate-500">Qty: ${item.quantity} &times; $${item.price}</p>
+                            </div>
+                            <div class="shrink-0 text-sm font-bold text-slate-800">$${item.subtotal}</div>
+                        </div>
+                    `).join("");
+
+                details.innerHTML = `
+                    <summary class="flex cursor-pointer list-none flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span class="text-sm font-bold text-slate-900">Order ${escapeHtml(order.orderNumber)}</span>
+                            <span class="text-xs text-slate-500">${escapeHtml(order.date)}</span>
+                            <span class="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${statusClass}">${escapeHtml(statusLabel)}</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs text-slate-500">${order.itemCount} item${order.itemCount === 1 ? "" : "s"}</span>
+                            <span class="text-base font-black text-blue-700">$${order.total}</span>
+                            <span class="text-slate-400">&#9662;</span>
+                        </div>
+                    </summary>
+                    <div class="border-t border-slate-200 p-4">
+                        <div class="space-y-3">${itemsHtml}</div>
+                    </div>
+                `;
+
+                wrap.appendChild(details);
+            });
+
+            body.appendChild(wrap);
+        }
+
+        function getInertTargets() {
+            // Walk up from the modal to <body>, collecting true siblings at
+            // each level. This works no matter how deeply the modal is
+            // nested (e.g. if header/footer templates wrap the page in
+            // extra containers) and guarantees we never inert the modal
+            // itself or any of its ancestors.
+            const targets = [];
+            let node = modal;
+            while (node && node !== document.body && node.parentElement) {
+                const parent = node.parentElement;
+                Array.from(parent.children).forEach((sibling) => {
+                    if (sibling !== node) targets.push(sibling);
+                });
+                node = parent;
+            }
+            return targets;
+        }
+
+        function setBackgroundInert(isInert) {
+            getInertTargets().forEach((el) => {
+                if (isInert) {
+                    el.setAttribute("inert", "");
+                } else {
+                    el.removeAttribute("inert");
+                }
+            });
+        }
+
+        function loadOrders() {
+            loading = true;
+            renderLoading();
+
+            fetch("order-history-data.php", { credentials: "same-origin" })
+                .then((res) => {
+                    return res.text().then((text) => {
+                        let data;
+                        try {
+                            data = JSON.parse(text);
+                        } catch (parseErr) {
+                            console.error("Order history: response was not valid JSON.", text);
+                            throw new Error("Server returned an unexpected response.");
+                        }
+
+                        if (!res.ok) {
+                            throw new Error(data.error || `Request failed (${res.status}).`);
+                        }
+
+                        return data;
+                    });
+                })
+                .then((data) => {
+                    loading = false;
+                    loaded = true;
+
+                    if (data.error) {
+                        renderError(data.error);
+                        return;
+                    }
+
+                    if (!data.orders || data.orders.length === 0) {
+                        renderEmpty();
+                    } else {
+                        renderOrders(data.orders);
+                    }
+                })
+                .catch((err) => {
+                    console.error("Order history fetch failed:", err);
+                    loading = false;
+                    // Allow retry on next open instead of getting stuck permanently
+                    loaded = false;
+                    renderError(err.message);
+                });
+        }
+
+        function openModal() {
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            setBackgroundInert(true);
+
+            if (!loaded && !loading) {
+                loadOrders();
+            }
+        }
+
+        function closeModal() {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+            setBackgroundInert(false);
+        }
+
+        openBtn.addEventListener("click", openModal);
+        closeBtn.addEventListener("click", closeModal);
+        backdrop.addEventListener("click", closeModal);
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+                closeModal();
+            }
+        });
+    });
+</script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {

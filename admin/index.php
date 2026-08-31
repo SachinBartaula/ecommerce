@@ -106,7 +106,7 @@ require_once "../includes/admin-header.php";
 <main class="admin-shell min-h-[calc(100vh-5rem)] py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-6 lg:flex-row">
-            <aside class="admin-sidebar rounded-2xl p-5 text-white lg:w-60 lg:shrink-0 lg:self-start">
+            <!-- <aside class="admin-sidebar rounded-2xl p-5 text-white lg:w-60 lg:shrink-0 lg:self-start">
                 <p class="text-xs uppercase tracking-[.18em] text-slate-400">Control room</p>
                 <h1 class="mt-2 text-2xl font-bold">Admin</h1>
                 <nav class="mt-8 space-y-2 text-sm">
@@ -116,7 +116,7 @@ require_once "../includes/admin-header.php";
                     <a href="orders.php" class="flex items-center rounded-lg px-3 py-3 text-slate-300 transition hover:bg-white/10 hover:text-white">Orders</a>
                     <a href="../products.php" class="flex items-center rounded-lg px-3 py-3 text-slate-300 transition hover:bg-white/10 hover:text-white">View storefront</a>
                 </nav>
-            </aside>
+            </aside> -->
 
             <section class="min-w-0 flex-1">
                 <div class="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
