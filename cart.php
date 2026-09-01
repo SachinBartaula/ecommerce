@@ -52,7 +52,7 @@ require_once "includes/header.php";
 
             <div class="flex items-center justify-between text-base font-bold text-gray-800 border-t pt-4 mt-4">
                 <span>Total</span>
-                <span id="summaryTotal">$0.00</span>
+                <span id="summaryTotal">Rs. 0.00</span>
             </div>
 
             <a
@@ -117,7 +117,7 @@ require_once "includes/header.php";
 
                 <div class="flex-1 min-w-0">
                     <h3 class="font-medium text-gray-800 truncate">${escapeHtml(item.name)}</h3>
-                    <p class="text-blue-600 font-semibold mt-1">$${parseFloat(item.price).toFixed(2)}</p>
+                    <p class="text-blue-600 font-semibold mt-1">Rs. ${parseFloat(item.price).toFixed(2)}</p>
 
                     <div class="flex items-center gap-3 mt-3">
                         <div class="flex items-center border rounded-lg overflow-hidden">
@@ -133,7 +133,7 @@ require_once "includes/header.php";
                 </div>
 
                 <div class="text-right font-semibold text-gray-800 line-total">
-                    $${lineTotal}
+                    Rs. ${lineTotal}
                 </div>
 
             </div>
@@ -142,7 +142,7 @@ require_once "includes/header.php";
 
     function renderSummary(totalCount, totalAmount) {
         summaryCount.textContent = totalCount;
-        summaryTotal.textContent = `$${parseFloat(totalAmount).toFixed(2)}`;
+        summaryTotal.textContent = `Rs. ${parseFloat(totalAmount).toFixed(2)}`;
     }
 
     function attachRowEvents() {

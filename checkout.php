@@ -314,7 +314,7 @@ require_once "includes/header.php";
             <p class="text-gray-500 mb-6">
                 Order <span class="font-semibold text-gray-700">#<?php echo (int) $orderId; ?></span>
                 &middot; Total
-                <span class="font-semibold text-gray-700">$<?php echo number_format($orderTotal, 2); ?></span>
+                <span class="font-semibold text-gray-700">Rs. <?php echo number_format($orderTotal, 2); ?></span>
             </p>
 
             <a href="products.php"
@@ -446,7 +446,7 @@ require_once "includes/header.php";
 
                 <div class="flex items-center justify-between text-base font-bold text-gray-800 border-t pt-4">
                     <span>Total</span>
-                    <span id="checkoutSummaryTotal">$0.00</span>
+                    <span id="checkoutSummaryTotal">Rs. 0.00</span>
                 </div>
 
                 <a href="cart.php" class="mt-4 block text-center text-sm text-blue-600 hover:underline">
@@ -501,11 +501,11 @@ require_once "includes/header.php";
             <div class="flex items-center justify-between text-sm">
                 <span class="text-gray-600 truncate pr-2">${escapeHtml(directBuyProduct.name)} &times; ${directBuyProduct.quantity}</span>
                 <span class="text-gray-800 font-medium whitespace-nowrap">
-                    $${(parseFloat(directBuyProduct.price) * directBuyProduct.quantity).toFixed(2)}
+                    Rs. ${(parseFloat(directBuyProduct.price) * directBuyProduct.quantity).toFixed(2)}
                 </span>
             </div>
         `;
-        summaryTotal.textContent = `$${(parseFloat(directBuyProduct.price) * directBuyProduct.quantity).toFixed(2)}`;
+        summaryTotal.textContent = `Rs. ${(parseFloat(directBuyProduct.price) * directBuyProduct.quantity).toFixed(2)}`;
         return;
     }
 
@@ -515,7 +515,7 @@ require_once "includes/header.php";
 
             if (!data.success || data.data.length === 0) {
                 summaryItems.innerHTML = `<p class="text-sm text-gray-500">Your cart is empty.</p>`;
-                summaryTotal.textContent = "$0.00";
+                summaryTotal.textContent = "Rs. 0.00";
                 if (placeOrderBtn) {
                     placeOrderBtn.disabled = true;
                     placeOrderBtn.classList.add("opacity-50", "cursor-not-allowed");
@@ -527,12 +527,12 @@ require_once "includes/header.php";
                 <div class="flex items-center justify-between text-sm">
                     <span class="text-gray-600 truncate pr-2">${escapeHtml(item.name)} &times; ${item.quantity}</span>
                     <span class="text-gray-800 font-medium whitespace-nowrap">
-                        $${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                        Rs. ${(parseFloat(item.price) * item.quantity).toFixed(2)}
                     </span>
                 </div>
             `).join("");
 
-            summaryTotal.textContent = `$${parseFloat(data.total_amount).toFixed(2)}`;
+            summaryTotal.textContent = `Rs. ${parseFloat(data.total_amount).toFixed(2)}`;
 
             if (window.updateCartBadge) {
                 window.updateCartBadge(data.total_count);

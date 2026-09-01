@@ -183,7 +183,7 @@ require_once "includes/header.php";
 
                 <div class="mb-6 flex items-center gap-3">
                     <p class="text-3xl font-extrabold text-blue-600">
-                        $<?php echo number_format((float) $product["price"], 2); ?>
+                        Rs. <?php echo number_format((float) $product["price"], 2); ?>
                     </p>
                     <span class="rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-semibold text-cyan-700">Free shipping</span>
                 </div>

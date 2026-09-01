@@ -372,7 +372,7 @@ $heroSlides = [
 
                         <div class="mt-3 flex items-center justify-between gap-2">
                             <span class="text-lg font-black text-blue-700">
-                                $<?php echo number_format((float) $product['price'], 2); ?>
+                                Rs. <?php echo number_format((float) $product['price'], 2); ?>
                             </span>
 
                             <?php if ((int) $product['stock'] <= 0): ?>

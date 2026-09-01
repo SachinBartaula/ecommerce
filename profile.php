@@ -441,9 +441,9 @@ require_once "includes/header.php";
                             </div>
                             <div class="min-w-0 flex-1">
                                 <p class="truncate text-sm font-semibold text-slate-800">${escapeHtml(item.name)}</p>
-                                <p class="text-xs text-slate-500">Qty: ${item.quantity} &times; $${item.price}</p>
+                                <p class="text-xs text-slate-500">Qty: ${item.quantity} &times; Rs. ${item.price}</p>
                             </div>
-                            <div class="shrink-0 text-sm font-bold text-slate-800">$${item.subtotal}</div>
+                            <div class="shrink-0 text-sm font-bold text-slate-800">Rs. ${item.subtotal}</div>
                         </div>
                     `).join("");
 
@@ -456,7 +456,7 @@ require_once "includes/header.php";
                         </div>
                         <div class="flex items-center gap-4">
                             <span class="text-xs text-slate-500">${order.itemCount} item${order.itemCount === 1 ? "" : "s"}</span>
-                            <span class="text-base font-black text-blue-700">$${order.total}</span>
+                            <span class="text-base font-black text-blue-700">Rs. ${order.total}</span>
                             <span class="text-slate-400">&#9662;</span>
                         </div>
                     </summary>

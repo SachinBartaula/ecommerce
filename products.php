@@ -398,7 +398,7 @@ require_once "includes/header.php";
                             <span class="text-xs text-slate-400">(${Number(product.review_count || 0)})</span>
                         </div>
                         <div class="flex items-center justify-between mt-2.5">
-                            <span class="text-blue-600 font-bold text-lg">$${parseFloat(product.price).toFixed(2)}</span>
+                            <span class="text-blue-600 font-bold text-lg">Rs. ${parseFloat(product.price).toFixed(2)}</span>
                             ${outOfStock
                                 ? `<span class="text-[11px] font-semibold text-red-500">Unavailable</span>`
                                 : `<span class="text-[11px] font-semibold text-emerald-600">In stock</span>`

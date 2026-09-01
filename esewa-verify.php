@@ -126,7 +126,7 @@ require_once "includes/header.php";
             <p class="text-gray-500 mb-6">
                 Order <span class="font-semibold text-gray-700">#<?php echo (int) $orderId; ?></span>
                 &middot; Total
-                <span class="font-semibold text-gray-700">$<?php echo number_format($orderTotal, 2); ?></span>
+                <span class="font-semibold text-gray-700">Rs. <?php echo number_format($orderTotal, 2); ?></span>
             </p>
             <a href="products.php" class="inline-block bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 hover:scale-105 transition-all duration-200">
                 Continue Shopping
