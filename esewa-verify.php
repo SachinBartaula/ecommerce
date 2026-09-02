@@ -40,14 +40,18 @@ if ($rawData === "") {
             //    transaction_uuid we generated at initiate time.
             $transactionUuid = $decoded["transaction_uuid"];
 
+            $currentUserId = isset($_SESSION["user_id"]) ? (int) $_SESSION["user_id"] : 0;
+
             $sql = "SELECT payments.id AS payment_id, payments.amount, payments.status AS payment_status,
-                           orders.id AS order_id, orders.total_amount
+                           orders.id AS order_id, orders.user_id, orders.total_amount, orders.status AS order_status
                     FROM payments
                     JOIN orders ON orders.id = payments.order_id
-                    WHERE payments.transaction_id = ? AND payments.payment_method = 'esewa'
+                    WHERE payments.transaction_id = ?
+                      AND payments.payment_method = 'esewa'
+                      AND orders.user_id = ?
                     LIMIT 1";
             $stmt = mysqli_prepare($conn, $sql);
-            mysqli_stmt_bind_param($stmt, "s", $transactionUuid);
+            mysqli_stmt_bind_param($stmt, "si", $transactionUuid, $currentUserId);
             mysqli_stmt_execute($stmt);
             $payment = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
             mysqli_stmt_close($stmt);
@@ -84,17 +88,50 @@ if ($rawData === "") {
 
                     mysqli_begin_transaction($conn);
                     try {
-                        $updatePayment = "UPDATE payments SET status = 'paid', transaction_id = ?, paid_at = NOW() WHERE id = ?";
+                        // Keep the transaction UUID in our database. The same
+                        // callback may be refreshed, and replacing it with ref_id
+                        // would make the callback impossible to match on refresh.
+                        $updatePayment = "UPDATE payments
+                                          SET status = 'paid', paid_at = NOW()
+                                          WHERE id = ? AND status = 'pending'";
                         $stmt2 = mysqli_prepare($conn, $updatePayment);
-                        mysqli_stmt_bind_param($stmt2, "si", $refId, $payment["payment_id"]);
+                        mysqli_stmt_bind_param($stmt2, "i", $payment["payment_id"]);
                         mysqli_stmt_execute($stmt2);
+                        $paymentUpdated = mysqli_stmt_affected_rows($stmt2) === 1;
                         mysqli_stmt_close($stmt2);
 
-                        $updateOrder = "UPDATE orders SET status = 'confirmed' WHERE id = ? AND status = 'pending'";
+                        $updateOrder = "UPDATE orders SET status = 'confirmed'
+                                        WHERE id = ? AND user_id = ? AND status = 'pending'";
                         $stmt3 = mysqli_prepare($conn, $updateOrder);
-                        mysqli_stmt_bind_param($stmt3, "i", $payment["order_id"]);
+                        mysqli_stmt_bind_param($stmt3, "ii", $payment["order_id"], $currentUserId);
                         mysqli_stmt_execute($stmt3);
+                        $orderUpdated = mysqli_stmt_affected_rows($stmt3) === 1;
                         mysqli_stmt_close($stmt3);
+
+                        if (!$paymentUpdated && $payment["payment_status"] !== "paid") {
+                            throw new Exception("Payment record could not be finalized.");
+                        }
+
+                        if (!$orderUpdated && $payment["order_status"] !== "confirmed") {
+                            throw new Exception("Order could not be finalized.");
+                        }
+
+                        // Clear only the cart that was used for this eSewa checkout.
+                        // Direct-buy checkouts intentionally leave the user's cart alone.
+                        $pendingCartId = (int) ($_SESSION["esewa_pending_cart_id"] ?? 0);
+                        $pendingOrderId = (int) ($_SESSION["esewa_pending_order_id"] ?? 0);
+
+                        if ($pendingCartId > 0 && $pendingOrderId === (int) $payment["order_id"]) {
+                            $clearCart = "DELETE ci FROM cart_items ci
+                                          INNER JOIN cart c ON c.id = ci.cart_id
+                                          WHERE ci.cart_id = ? AND c.user_id = ?";
+                            $cartStmt = mysqli_prepare($conn, $clearCart);
+                            mysqli_stmt_bind_param($cartStmt, "ii", $pendingCartId, $currentUserId);
+                            mysqli_stmt_execute($cartStmt);
+                            mysqli_stmt_close($cartStmt);
+                        }
+
+                        unset($_SESSION["esewa_pending_order_id"], $_SESSION["esewa_pending_cart_id"]);
 
                         mysqli_commit($conn);
 

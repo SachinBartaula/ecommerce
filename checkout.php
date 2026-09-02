@@ -24,6 +24,12 @@ $directBuyProduct = null;
 $directBuyQty     = 1;
 $savedAddresses   = [];
 
+// One-time checkout token prevents accidental double-submission / duplicate orders.
+if (empty($_SESSION["checkout_token"])) {
+    $_SESSION["checkout_token"] = bin2hex(random_bytes(32));
+}
+$checkoutToken = $_SESSION["checkout_token"];
+
 $addressSql = "SELECT id, label, full_name, phone, address, city, postal_code, is_default FROM shipping_addresses WHERE user_id = ? ORDER BY is_default DESC, id DESC";
 $addressStmt = mysqli_prepare($conn, $addressSql);
 mysqli_stmt_bind_param($addressStmt, "i", $userId);
@@ -102,6 +108,11 @@ function getCartId($conn, $userId) {
 // =====================================================
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    $submittedToken = $_POST["checkout_token"] ?? "";
+    if (!hash_equals($_SESSION["checkout_token"] ?? "", $submittedToken)) {
+        $errors[] = "This checkout session has expired or was already submitted. Please refresh and try again.";
+    }
 
     $shippingAddress = trim($_POST["shipping_address"] ?? "");
     $paymentMethod   = in_array($_POST["payment_method"] ?? "", ["cod", "card", "esewa", "khalti", "imepay"]) ? $_POST["payment_method"] : "cod";
@@ -263,20 +274,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             mysqli_stmt_execute($paymentStmt);
             mysqli_stmt_close($paymentStmt);
 
-            // Empty the cart only for normal checkout flow
-            if (!$directBuyProductId) {
+            // COD orders are complete at this point, so remove the cart now.
+            // For eSewa, KEEP the cart until payment is verified. This makes
+            // cancellation safe and lets the customer retry without losing items.
+            if ($paymentMethod !== "esewa" && !$directBuyProductId) {
                 $clearSql = "DELETE FROM cart_items WHERE cart_id = ?";
                 $clearStmt = mysqli_prepare($conn, $clearSql);
                 $cartIdForClear = getCartId($conn, $userId);
-                mysqli_stmt_bind_param($clearStmt, "i", $cartIdForClear);
-                mysqli_stmt_execute($clearStmt);
+                if ($cartIdForClear) {
+                    mysqli_stmt_bind_param($clearStmt, "i", $cartIdForClear);
+                    mysqli_stmt_execute($clearStmt);
+                }
                 mysqli_stmt_close($clearStmt);
             }
 
             mysqli_commit($conn);
 
-            // eSewa: send the customer to eSewa's checkout page instead of
+            // Consume the token only after the order transaction succeeds.
+            unset($_SESSION["checkout_token"]);
+
+            // eSewa: create the order as a temporary pending payment record.
+            // The order is finalized only after eSewa confirms the payment.
             if ($paymentMethod === "esewa") {
+                $_SESSION["esewa_pending_order_id"] = $newOrderId;
+                $_SESSION["esewa_pending_cart_id"] = (!$directBuyProductId) ? (getCartId($conn, $userId) ?: 0) : 0;
                 header("Location: esewa-initiate.php?order_id=" . $newOrderId);
                 exit;
             }
@@ -420,17 +441,19 @@ require_once "includes/header.php";
 
                 </div>
 
+                <input type="hidden" name="checkout_token" value="<?php echo htmlspecialchars($checkoutToken); ?>">
+
                 <?php if ($directBuyProduct): ?>
                     <input type="hidden" name="direct_buy_product_id" value="<?php echo (int) $directBuyProduct["id"]; ?>">
                     <input type="hidden" name="direct_buy_quantity" value="<?php echo (int) $directBuyQty; ?>">
                 <?php endif; ?>
 
                 <button
-                    type="submit"
+                    type="button"
                     id="placeOrderBtn"
                     class="w-full bg-blue-600 text-white font-semibold px-6 py-3.5 rounded-lg hover:bg-blue-700 hover:scale-[1.01] transition-all duration-200 shadow-lg reveal"
                     style="transition-delay: 150ms;">
-                    Place Order
+                    Confirm Order
                 </button>
 
             </form>
@@ -457,6 +480,47 @@ require_once "includes/header.php";
 
         </div>
 
+        <!-- ORDER CONFIRMATION MODAL -->
+        <div id="orderConfirmModal" class="hidden fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm items-center justify-center px-4">
+            <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
+                <div class="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800">Confirm Your Order</h2>
+                        <p class="text-sm text-gray-500 mt-1">Please review the details before placing the order.</p>
+                    </div>
+                    <button type="button" id="closeConfirmModal" class="text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+                </div>
+
+                <div class="space-y-3 bg-gray-50 rounded-xl p-4 mb-5 text-sm">
+                    <div class="flex justify-between gap-4">
+                        <span class="text-gray-500">Delivery</span>
+                        <span class="font-medium text-gray-800 text-right" id="confirmAddress">—</span>
+                    </div>
+                    <div class="flex justify-between gap-4">
+                        <span class="text-gray-500">Payment</span>
+                        <span class="font-medium text-gray-800" id="confirmPayment">—</span>
+                    </div>
+                    <div class="flex justify-between gap-4 border-t pt-3">
+                        <span class="font-semibold text-gray-700">Total</span>
+                        <span class="font-bold text-blue-600" id="confirmTotal">Rs. 0.00</span>
+                    </div>
+                </div>
+
+                <p id="confirmEsewaNote" class="hidden text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 mb-5">
+                    You will be redirected to eSewa after confirmation. The order will only be confirmed after eSewa successfully verifies your payment.
+                </p>
+
+                <div class="flex gap-3">
+                    <button type="button" id="cancelConfirmModal" class="flex-1 border border-gray-300 text-gray-700 font-semibold px-4 py-3 rounded-lg hover:bg-gray-50">
+                        Go Back
+                    </button>
+                    <button type="button" id="finalConfirmOrder" class="flex-1 bg-blue-600 text-white font-semibold px-4 py-3 rounded-lg hover:bg-blue-700">
+                        Confirm & Place Order
+                    </button>
+                </div>
+            </div>
+        </div>
+
     <?php endif; ?>
 
 </section>
@@ -473,6 +537,64 @@ require_once "includes/header.php";
         div.textContent = str ?? "";
         return div.innerHTML;
     }
+
+    const checkoutForm = placeOrderBtn ? placeOrderBtn.closest("form") : null;
+    const confirmModal = document.getElementById("orderConfirmModal");
+    const closeConfirmModal = document.getElementById("closeConfirmModal");
+    const cancelConfirmModal = document.getElementById("cancelConfirmModal");
+    const finalConfirmOrder = document.getElementById("finalConfirmOrder");
+    const confirmAddress = document.getElementById("confirmAddress");
+    const confirmPayment = document.getElementById("confirmPayment");
+    const confirmTotal = document.getElementById("confirmTotal");
+    const confirmEsewaNote = document.getElementById("confirmEsewaNote");
+
+    function openConfirmModal() {
+        if (!checkoutForm || !confirmModal || !placeOrderBtn || placeOrderBtn.disabled) return;
+
+        const address = document.getElementById("shipping_address")?.value.trim() || "";
+        const payment = document.querySelector('input[name="payment_method"]:checked')?.value || "cod";
+
+        if (!address || address.length < 10) {
+            document.getElementById("shipping_address")?.focus();
+            return;
+        }
+
+        confirmAddress.textContent = address;
+        confirmPayment.textContent = payment === "esewa" ? "eSewa" : "Cash on Delivery";
+        confirmTotal.textContent = summaryTotal?.textContent || "Rs. 0.00";
+        confirmEsewaNote.classList.toggle("hidden", payment !== "esewa");
+
+        confirmModal.classList.remove("hidden");
+        confirmModal.classList.add("flex");
+        document.body.classList.add("overflow-hidden");
+    }
+
+    function closeConfirm() {
+        if (!confirmModal) return;
+        confirmModal.classList.add("hidden");
+        confirmModal.classList.remove("flex");
+        document.body.classList.remove("overflow-hidden");
+    }
+
+    placeOrderBtn?.addEventListener("click", openConfirmModal);
+    closeConfirmModal?.addEventListener("click", closeConfirm);
+    cancelConfirmModal?.addEventListener("click", closeConfirm);
+
+    confirmModal?.addEventListener("click", (event) => {
+        if (event.target === confirmModal) closeConfirm();
+    });
+
+    finalConfirmOrder?.addEventListener("click", () => {
+        if (!checkoutForm || !placeOrderBtn) return;
+
+        finalConfirmOrder.disabled = true;
+        finalConfirmOrder.classList.add("opacity-60", "cursor-not-allowed");
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.classList.add("opacity-60", "cursor-not-allowed");
+        finalConfirmOrder.textContent = "Processing...";
+
+        checkoutForm.submit();
+    });
 
     const addressSelect = document.getElementById("saved-address-select");
     const shippingAddressField = document.getElementById("shipping_address");

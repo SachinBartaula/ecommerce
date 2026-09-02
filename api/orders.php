@@ -129,13 +129,6 @@ if ($requestMethod === "POST" && ($_POST["action"] ?? "") === "update_payment_st
         echo json_encode(["success" => false, "message" => "No payment record exists for this order."]);
         exit;
     }
-
-    $normalizedMethod = strtolower(trim((string) ($paymentRecord["payment_method"] ?? "")));
-    $onlineMethods = ["card", "online_payment", "onlinepayment", "esewa", "khalti", "imepay"];
-    if (in_array($normalizedMethod, $onlineMethods, true)) {
-        $paymentStatus = "paid";
-    }
-
     $stmt = mysqli_prepare($conn, "UPDATE payments SET status = ? WHERE order_id = ?");
     mysqli_stmt_bind_param($stmt, "si", $paymentStatus, $orderId);
     $success = mysqli_stmt_execute($stmt);

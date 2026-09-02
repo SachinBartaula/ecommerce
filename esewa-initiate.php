@@ -26,10 +26,10 @@ if (!$orderId) {
 // an already-paid order, or paying for someone else's order, just by
 // guessing an order_id in the URL.
 $sql = "SELECT orders.id, orders.total_amount,
-               payments.id AS payment_id, payments.status AS payment_status
+               payments.id AS payment_id, payments.amount AS payment_amount, payments.status AS payment_status
         FROM orders
         JOIN payments ON payments.order_id = orders.id
-        WHERE orders.id = ? AND orders.user_id = ? AND payments.payment_method = 'esewa'
+        WHERE orders.id = ? AND orders.user_id = ? AND orders.status = 'pending' AND payments.payment_method = 'esewa'
         LIMIT 1";
 $stmt = mysqli_prepare($conn, $sql);
 mysqli_stmt_bind_param($stmt, "ii", $orderId, $userId);
@@ -38,6 +38,11 @@ $order = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
 mysqli_stmt_close($stmt);
 
 if (!$order || $order["payment_status"] !== "pending") {
+    header("Location: checkout.php");
+    exit;
+}
+
+if (abs((float) $order["payment_amount"] - (float) $order["total_amount"]) > 0.01) {
     header("Location: checkout.php");
     exit;
 }
@@ -72,7 +77,7 @@ $totalAmount = $amount;
 // transaction_uuid must be unique per payment ATTEMPT (a user might retry
 // after a failed/cancelled payment), so combine the order id with a
 // timestamp rather than reusing the same value every time.
-$transactionUuid = $orderId . "-" . time();
+$transactionUuid = $orderId . "-" . bin2hex(random_bytes(8));
 
 // Remember the uuid we're about to send so esewa-verify.php can match
 // eSewa's callback back to this exact payment row.
