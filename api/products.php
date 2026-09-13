@@ -2,8 +2,60 @@
 
 require_once __DIR__ . "/../config/database.php";
 
+/**
+ * Safely validate and store an uploaded product image.
+ *
+ * Never trusts the client-supplied MIME type or original filename/extension
+ * (both are attacker-controlled). Instead it inspects the actual file bytes
+ * with getimagesize() and always writes a fixed, server-chosen extension,
+ * which prevents disguised PHP/HTML files from being stored as "images"
+ * (a classic path to remote code execution via file upload).
+ *
+ * @return array{ok:bool, path?:string, error?:string}
+ */
+function handleProductImageUpload(array $file): array
+{
+    $allowedExtensionsByType = [
+        IMAGETYPE_JPEG => "jpg",
+        IMAGETYPE_PNG  => "png",
+        IMAGETYPE_WEBP => "webp",
+    ];
+
+    if ($file["size"] > 2 * 1024 * 1024) {
+        return ["ok" => false, "error" => "Use an image smaller than 2MB."];
+    }
+
+    // getimagesize() reads the actual file header, so a renamed .php file
+    // with a spoofed Content-Type will fail here even though the client
+    // claimed it was a JPEG.
+    $imageInfo = @getimagesize($file["tmp_name"]);
+    if ($imageInfo === false || !isset($allowedExtensionsByType[$imageInfo[2]])) {
+        return ["ok" => false, "error" => "Use a real JPG, PNG or WEBP image."];
+    }
+
+    $extension = $allowedExtensionsByType[$imageInfo[2]];
+    $uploadDirectory = __DIR__ . "/../assets/images/products/";
+    if (!is_dir($uploadDirectory)) {
+        mkdir($uploadDirectory, 0755, true);
+    }
+
+    $fileName = uniqid("product_", true) . "." . $extension;
+    if (!move_uploaded_file($file["tmp_name"], $uploadDirectory . $fileName)) {
+        return ["ok" => false, "error" => "Failed to upload image."];
+    }
+
+    return ["ok" => true, "path" => "assets/images/products/" . $fileName];
+}
+
 if (session_status() === PHP_SESSION_NONE) {
     session_name("shop_admin_session");
+    session_set_cookie_params([
+        "lifetime" => 0,
+        "path" => "/",
+        "secure" => isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off",
+        "httponly" => true,
+        "samesite" => "Lax",
+    ]);
     session_start();
 }
 
@@ -70,26 +122,14 @@ if ($requestMethod === "POST" && ($_POST["action"] ?? "") === "update") {
 
     $image = $currentProduct["image"] ?? "";
     if (isset($_FILES["image_file"]) && $_FILES["image_file"]["error"] === UPLOAD_ERR_OK) {
-        $file = $_FILES["image_file"];
-        $allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+        $uploadResult = handleProductImageUpload($_FILES["image_file"]);
 
-        if (!in_array($file["type"], $allowedTypes, true) || $file["size"] > 2 * 1024 * 1024) {
-            echo json_encode(["success" => false, "message" => "Use a JPG, PNG or WEBP image smaller than 2MB."]);
+        if (!$uploadResult["ok"]) {
+            echo json_encode(["success" => false, "message" => $uploadResult["error"]]);
             exit;
         }
 
-        $uploadDirectory = __DIR__ . "/../assets/images/products/";
-        if (!is_dir($uploadDirectory)) {
-            mkdir($uploadDirectory, 0755, true);
-        }
-
-        $fileName = uniqid("product_", true) . "." . pathinfo($file["name"], PATHINFO_EXTENSION);
-        if (!move_uploaded_file($file["tmp_name"], $uploadDirectory . $fileName)) {
-            echo json_encode(["success" => false, "message" => "Failed to upload image."]);
-            exit;
-        }
-
-        $image = "assets/images/products/" . $fileName;
+        $image = $uploadResult["path"];
     } elseif ($imageUrl !== "") {
         $image = $imageUrl;
     }
@@ -249,72 +289,17 @@ if ($requestMethod === "POST") {
     if (isset($_FILES["image_file"]) &&
         $_FILES["image_file"]["error"] === UPLOAD_ERR_OK) {
 
-        $file = $_FILES["image_file"];
+        $uploadResult = handleProductImageUpload($_FILES["image_file"]);
 
-        $allowedTypes = [
-            "image/jpeg",
-            "image/png",
-            "image/webp"
-        ];
-
-        if (!in_array($file["type"], $allowedTypes)) {
-
+        if (!$uploadResult["ok"]) {
             echo json_encode([
                 "success" => false,
-                "message" => "Only JPG, PNG and WEBP images are allowed."
+                "message" => $uploadResult["error"]
             ]);
-
             exit;
         }
 
-
-        // Maximum 2MB
-        if ($file["size"] > 2 * 1024 * 1024) {
-
-            echo json_encode([
-                "success" => false,
-                "message" => "Image size must be less than 2MB."
-            ]);
-
-            exit;
-        }
-
-
-        $uploadDirectory = __DIR__ . "/../assets/images/products/";
-
-
-        // Create directory if it doesn't exist
-        if (!is_dir($uploadDirectory)) {
-            mkdir($uploadDirectory, 0755, true);
-        }
-
-
-        $extension = pathinfo(
-            $file["name"],
-            PATHINFO_EXTENSION
-        );
-
-
-        $fileName = uniqid("product_", true) . "." . $extension;
-
-        $uploadPath = $uploadDirectory . $fileName;
-
-
-        if (!move_uploaded_file(
-            $file["tmp_name"],
-            $uploadPath
-        )) {
-
-            echo json_encode([
-                "success" => false,
-                "message" => "Failed to upload image."
-            ]);
-
-            exit;
-        }
-
-
-        $image = "assets/images/products/" . $fileName;
+        $image = $uploadResult["path"];
     }
 
 

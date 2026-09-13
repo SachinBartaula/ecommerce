@@ -1,0 +1,43 @@
+# ---------------------------------------------------------------------------
+# Security hardening for production. This is Apache config (works on
+# InfinityFree / most shared hosts). If your host uses Nginx instead, these
+# rules need to be translated into the server/location block config.
+# ---------------------------------------------------------------------------
+
+# Never serve the SQL dump, config folder, includes folder, or any leftover
+# credential/notes files directly. PHP files still execute normally; this
+# only blocks direct HTTP access to non-PHP assets that should stay private.
+<FilesMatch "(?i)\.(sql|sqlite|env|log|md|bak|zip|gz)$">
+    Require all denied
+</FilesMatch>
+
+# Block any file that isn't meant to be public regardless of extension
+# (e.g. a stray credentials/notes file left in the project root).
+<FilesMatch "(?i)^(id_pass|credentials|secrets|readme)">
+    Require all denied
+</FilesMatch>
+
+# config/ and includes/ contain no page users should hit directly.
+RewriteEngine On
+RewriteRule ^config/ - [F,L]
+RewriteRule ^includes/ - [F,L]
+
+# Never allow directory listings.
+Options -Indexes
+
+# Basic security headers.
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), camera=(), microphone=()"
+    # Only send HSTS once you have confirmed HTTPS works site-wide.
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# Hide PHP version banner where the host allows it.
+<IfModule mod_php.c>
+    php_flag expose_php off
+    php_flag display_errors off
+    php_flag log_errors on
+</IfModule>

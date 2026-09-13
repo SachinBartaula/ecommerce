@@ -164,11 +164,19 @@ CREATE TABLE IF NOT EXISTS reviews (
         ON DELETE CASCADE
 );
 
--- DEFAULT ADMIN (change this password after first login)
+-- DEFAULT ADMIN
+-- SECURITY WARNING: the placeholder hash that used to ship here is a
+-- well-known example hash from PHP tutorials, NOT a secret password.
+-- Do not reuse it. Generate your own before running this on production:
+--
+--   php -r "echo password_hash('choose-a-strong-password', PASSWORD_DEFAULT), PHP_EOL;"
+--
+-- then paste the output below, or better, just register a normal account
+-- and manually set its role to 'admin' in the database after first login.
 INSERT INTO users (name, email, password, role)
 VALUES (
     'Admin',
     'admin@gmail.com',
-    '$2y$10$92IXUNvk2bWQ3OjQ5QqW3uQYqfQp0wP6u2T5qJ5y7Yp2X0K7wQx5y',
+    'REPLACE_WITH_YOUR_OWN_PASSWORD_HASH',
     'admin'
 );

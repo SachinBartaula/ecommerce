@@ -4,6 +4,13 @@ require_once __DIR__ . "/../config/database.php";
 
 if (session_status() === PHP_SESSION_NONE) {
     session_name("shop_admin_session");
+    session_set_cookie_params([
+        "lifetime" => 0,
+        "path" => "/",
+        "secure" => isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off",
+        "httponly" => true,
+        "samesite" => "Lax",
+    ]);
     session_start();
 }
 

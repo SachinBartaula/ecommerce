@@ -1,0 +1,13 @@
+# Defense in depth: even though api/products.php now validates uploaded
+# files are genuine images before storing them, this folder should never be
+# allowed to execute PHP (or any other script) under any circumstance.
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+<FilesMatch "\.(php|php\d|phtml|phar|pl|py|cgi|asp|aspx|sh)$">
+    Require all denied
+</FilesMatch>
+
+Options -Indexes -ExecCGI
+AddType text/plain .php .phtml .pl .py .cgi .asp .aspx .sh
